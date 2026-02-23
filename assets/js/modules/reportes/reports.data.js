@@ -799,6 +799,7 @@ function queryIncomeExpense({ db, year, month, currency, accountId }){
     const hasOpening = hasColumn(db,'movements','is_opening');
     const hasSavings = hasColumn(db,'movements','is_savings');
     const hasAmtTo = hasColumn(db,'movements','amount_to');
+    const movNotDeleted = hasColumn(db,'movements','is_deleted') ? " AND COALESCE(m.is_deleted,0)=0" : "";
 
     const accFilter = aid ? " AND a.id = :aid" : "";
     if (aid) p[':aid']=aid;
@@ -825,6 +826,7 @@ function queryIncomeExpense({ db, year, month, currency, accountId }){
       FROM movements m
       JOIN accounts a ON a.id = m.account_id
       WHERE ${initWhere}
+      ${movNotDeleted}
       ${curFilter}
       ${accFilter}
       GROUP BY a.id
@@ -841,6 +843,7 @@ function queryIncomeExpense({ db, year, month, currency, accountId }){
       FROM movements m
       JOIN accounts a ON a.id = m.account_to_id
       WHERE ${initWhere} AND m.account_to_id IS NOT NULL
+      ${movNotDeleted}
       ${curFilter}
       ${accFilter}
       GROUP BY a.id
@@ -860,6 +863,7 @@ function queryIncomeExpense({ db, year, month, currency, accountId }){
       FROM movements m
       JOIN accounts a ON a.id = m.account_id
       WHERE m.period = :p
+      ${movNotDeleted}
       ${flowOpenFilter}
       ${curFilter}
       ${accFilter}
@@ -873,6 +877,7 @@ function queryIncomeExpense({ db, year, month, currency, accountId }){
       FROM movements m
       JOIN accounts a ON a.id = m.account_to_id
       WHERE m.period = :p AND m.account_to_id IS NOT NULL
+      ${movNotDeleted}
       ${flowOpenFilter}
       ${curFilter}
       ${accFilter}
