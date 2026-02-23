@@ -1,0 +1,86 @@
+<section class="space-y-4">
+  <div class="bg-white p-4 rounded-xl shadow-sm border">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+      <div class="flex gap-2 flex-wrap">
+        <button onclick="openModal('sav_new')" class="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 w-fit">
+          <i data-lucide="plus"></i><span>Nuevo ahorro</span>
+        </button>
+        <button onclick="openModal('goal_new')" class="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 w-fit">
+          <i data-lucide="target"></i><span>Metas</span>
+        </button>
+        <button onclick="toast('UI only: export CSV')" class="bg-gray-200 px-4 py-2 rounded-lg flex items-center space-x-2 w-fit">
+          <i data-lucide="download"></i><span>Exportar</span>
+        </button>
+      </div>
+      <div class="relative w-full sm:w-72">
+        <input type="text" id="sav-q" placeholder="Buscar en descripción / cuenta / categoría..." class="w-full pl-10 pr-4 py-2 border rounded-lg" />
+        <i data-lucide="search" class="absolute left-3 top-2.5 text-gray-400 w-5 h-5"></i>
+      </div>
+    </div>
+
+    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div>
+        <label class="block text-xs font-semibold text-gray-500 mb-1">Año</label>
+        <select id="sav-year-f" class="w-full p-2 border rounded-lg text-sm"></select>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-500 mb-1">Mes</label>
+        <select id="sav-month-f" class="w-full p-2 border rounded-lg text-sm"></select>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-500 mb-1">Periodo</label>
+        <select id="sav-period-f" class="w-full p-2 border rounded-lg text-sm"></select>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-500 mb-1">Tipo</label>
+        <select id="sav-kind-f" class="w-full p-2 border rounded-lg text-sm"></select>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-500 mb-1">Cuenta</label>
+        <select id="sav-account-f" class="w-full p-2 border rounded-lg text-sm"></select>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-500 mb-1">Categoría</label>
+        <select id="sav-category-f" class="w-full p-2 border rounded-lg text-sm"></select>
+      </div>
+
+      <div class="md:col-span-3">
+        <label class="block text-xs font-semibold text-gray-500 mb-1">Meta</label>
+        <select id="sav-goal-f" class="w-full p-2 border rounded-lg text-sm"></select>
+      </div>
+      <div class="md:col-span-3">
+        <label class="block text-xs font-semibold text-gray-500 mb-1">Moneda</label>
+        <select id="sav-currency-f" class="w-full p-2 border rounded-lg text-sm"></select>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-sm border overflow-x-auto">
+    <table class="w-full text-left">
+      <thead class="bg-gray-50 border-b">
+        <tr>
+          <th class="p-3 font-semibold text-gray-600">Acciones</th>
+          <th class="p-3 font-semibold text-gray-600">ID</th>
+          <th class="p-3 font-semibold text-gray-600">Fecha</th>
+          <th class="p-3 font-semibold text-gray-600">Periodo</th>
+          <th class="p-3 font-semibold text-gray-600">Tipo</th>
+          <th class="p-3 font-semibold text-gray-600">Categoría</th>
+          <th class="p-3 font-semibold text-gray-600">Cuenta origen</th>
+          <th class="p-3 font-semibold text-gray-600">Cuenta destino</th>
+          <th class="p-3 font-semibold text-gray-600">Meta</th>
+          <th class="p-3 font-semibold text-gray-600">Descripción</th>
+          <th class="p-3 font-semibold text-gray-600">Monto</th>
+        </tr>
+      </thead>
+      <tbody id="sav-table-body"></tbody>
+    </table>
+  </div>
+
+  <div class="bg-white p-4 rounded-xl shadow-sm border">
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <h3 class="text-lg font-bold">Metas (vista rápida)</h3>
+      <button class="px-3 py-2 rounded-lg bg-gray-200 text-sm" onclick="openModal('goal_new')">Nueva meta</button>
+    </div>
+    <div id="sav-goals-quick" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+  </div>
+</section>

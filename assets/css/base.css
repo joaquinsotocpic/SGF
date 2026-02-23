@@ -1,0 +1,28 @@
+/* SGF v1.01 - UI Only */
+
+.tree-node { transition: all 0.2s ease; }
+.sidebar-transition { transition: transform 0.3s ease; }
+.node-color-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+
+/* Scrollbar estética */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+/* Dark theme (UI) - applied by adding .theme-dark to body */
+body.theme-dark { background: #0b1220; color: #e5e7eb; }
+body.theme-dark main { background: #0f172a !important; }
+body.theme-dark header { background: #0b1220 !important; color: #e5e7eb; }
+body.theme-dark .bg-white { background-color: #0b1220 !important; }
+body.theme-dark .bg-gray-50 { background-color: #0f172a !important; }
+body.theme-dark .bg-gray-100 { background-color: #0f172a !important; }
+body.theme-dark .text-gray-900 { color: #e5e7eb !important; }
+body.theme-dark .text-gray-800 { color: #e5e7eb !important; }
+body.theme-dark .text-gray-700 { color: #cbd5e1 !important; }
+body.theme-dark .text-gray-600 { color: #cbd5e1 !important; }
+body.theme-dark .text-gray-500 { color: #94a3b8 !important; }
+body.theme-dark .text-gray-400 { color: #94a3b8 !important; }
+body.theme-dark .border { border-color: rgba(148,163,184,0.25) !important; }
+body.theme-dark .shadow-sm { box-shadow: 0 1px 2px rgba(0,0,0,0.4) !important; }
+body.theme-dark input, body.theme-dark select, body.theme-dark textarea { background: #0f172a; color: #e5e7eb; border-color: rgba(148,163,184,0.25); }
+body.theme-dark #modal-box { background: #0b1220 !important; }

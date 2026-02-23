@@ -1,0 +1,70 @@
+
+<div class="p-4 md:p-6 space-y-5">
+  <div>
+    <h1 class="text-xl md:text-2xl font-semibold text-slate-900">Balance por Cuenta / Saldo por Mes</h1>
+    <p class="text-sm text-slate-600 mt-1">Balance mensual por cuenta (saldo inicial + flujos + saldo final). Vista alternativa por mes para una cuenta.</p>
+  </div>
+
+  <div class="rounded-2xl border bg-white p-4">
+  <div class="flex justify-end mb-2"><button type="button" data-rep-help="balance_cuentas" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border bg-white hover:bg-slate-50 text-sm">
+        <i data-lucide="circle-help" class="w-4 h-4"></i>
+        Ayuda
+      </button></div>
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+      <div class="md:col-span-3">
+        <label class="block text-sm font-medium text-slate-700 mb-1">Vista</label>
+        <select id="bal-view" class="w-full p-2 rounded-xl border">
+          <option value="by_account">Cuentas (mes seleccionado)</option>
+          <option value="by_month">Meses (cuenta seleccionada)</option>
+        </select>
+      </div>
+
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-slate-700 mb-1">Año</label>
+        <select id="bal-year" class="w-full p-2 rounded-xl border"></select>
+      </div>
+
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-slate-700 mb-1">Mes</label>
+        <select id="bal-month" class="w-full p-2 rounded-xl border">
+          <option value="01">enero</option><option value="02">febrero</option><option value="03">marzo</option>
+          <option value="04">abril</option><option value="05">mayo</option><option value="06">junio</option>
+          <option value="07">julio</option><option value="08">agosto</option><option value="09">setiembre</option>
+          <option value="10">octubre</option><option value="11">noviembre</option><option value="12">diciembre</option>
+        </select>
+      </div>
+
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-slate-700 mb-1">Moneda</label>
+        <select id="bal-currency" class="w-full p-2 rounded-xl border"></select>
+      </div>
+
+      <div class="md:col-span-3">
+        <label class="block text-sm font-medium text-slate-700 mb-1">Cuenta</label>
+        <select id="bal-account" class="w-full p-2 rounded-xl border"></select>
+      </div>
+
+      <div class="md:col-span-12 flex items-center justify-between mt-2">
+        <span class="text-xs text-slate-500" id="bal-range">—</span>
+        <span class="text-xs text-slate-500">Click en una fila → drilldown del mes</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="rounded-2xl border bg-white overflow-auto">
+    <table class="min-w-[1100px] w-full text-sm">
+      <thead class="bg-slate-50 text-slate-600">
+        <tr>
+          <th class="text-left py-2 px-3">Cuenta / Mes</th>
+          <th class="text-right py-2 px-3">Saldo inicial</th>
+          <th class="text-right py-2 px-3">Ingresos</th>
+          <th class="text-right py-2 px-3">Gastos</th>
+          <th class="text-right py-2 px-3">Transfer neto</th>
+          <th class="text-right py-2 px-3">Ahorros neto</th>
+          <th class="text-right py-2 px-3">Saldo final</th>
+        </tr>
+      </thead>
+      <tbody id="bal-tbody" class="text-slate-800"></tbody>
+    </table>
+  </div>
+</div>

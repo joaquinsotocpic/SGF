@@ -1,0 +1,157 @@
+<section class="space-y-6">
+  
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+<div class="bg-white p-6 rounded-xl shadow-sm border w-full">
+    <h3 class="text-lg font-bold mb-2">Configuración</h3>
+    <p class="text-gray-500 mb-6">Parámetros globales del sistema y utilidades (UI-only).</p>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="p-4 bg-gray-50 border rounded-xl">
+        <h4 class="font-semibold mb-3">Tema</h4>
+        <div class="flex gap-2 flex-wrap">
+          <button id="btn-theme-light" class="px-4 py-2 rounded-lg bg-white border">Claro</button>
+          <button id="btn-theme-dark" class="px-4 py-2 rounded-lg bg-white border">Oscuro</button>
+        </div>
+        <p class="text-xs text-gray-400 mt-3">El guardado persistente se implementa después.</p>
+      </div>
+
+      <div class="p-4 bg-gray-50 border rounded-xl">
+        <h4 class="font-semibold mb-3">Monedas</h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">Moneda base</label>
+            <select id="cfg-base-currency" class="w-full p-2 border rounded-lg"><option>CRC</option><option>USD</option></select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Moneda secundaria</label>
+            <select id="cfg-secondary-currency" class="w-full p-2 border rounded-lg"><option>USD</option><option>CRC</option></select>
+          </div>
+        </div>
+        <div class="mt-3">
+          <label class="block text-sm font-medium mb-1">Tipo de cambio por defecto (USD→CRC)</label>
+          <input id="cfg-default-usdcrc" type="number" step="0.0001" class="w-full p-2 border rounded-lg" placeholder="0.0000" />
+        </div>
+      </div>
+
+      <div class="p-4 bg-gray-50 border rounded-xl lg:col-span-2">
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <h4 class="font-semibold">Histórico de tipo de cambio (USD→CRC)</h4>
+            <p class="text-xs text-gray-400 mt-1">Puedes agregar/editar/eliminar tasas por fecha. Se usan automáticamente en movimientos multi-moneda y conversiones.</p>
+          </div>
+          <button class="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2" onclick="openModal('fx_new')">
+            <i data-lucide="plus" class="w-4 h-4"></i><span>Nuevo</span>
+          </button>
+        </div>
+
+        <div class="mt-4 bg-white border rounded-xl overflow-x-auto">
+          <table class="w-full text-left">
+            <thead class="bg-gray-50 border-b">
+              <tr>
+                <th class="p-3 font-semibold text-gray-600">Fecha</th>
+                <th class="p-3 font-semibold text-gray-600">Tipo de cambio</th>
+                <th class="p-3 font-semibold text-gray-600">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="fx-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="p-4 bg-gray-50 border rounded-xl">
+        <h4 class="font-semibold mb-3">Cuentas de ahorro predeterminadas</h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">Ahorro CRC</label>
+            <select id="cfg-savings-crc" class="w-full p-2 border rounded-lg"></select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Ahorro USD</label>
+            <select id="cfg-savings-usd" class="w-full p-2 border rounded-lg"></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 bg-gray-50 border rounded-xl">
+        <h4 class="font-semibold mb-3">Respaldo / Importación</h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button id="btn-vault-export" class="px-4 py-2 rounded-lg bg-white border flex items-center justify-center gap-2">
+            <i data-lucide="upload" class="w-4 h-4"></i> Exportar
+          </button>
+          <button id="btn-vault-import" class="px-4 py-2 rounded-lg bg-white border flex items-center justify-center gap-2">
+            <i data-lucide="download" class="w-4 h-4"></i> Importar
+          </button>
+
+<button id="btn-vault-latest-backup" class="px-3 py-2 border rounded-lg hover:bg-gray-50 text-sm">
+  Descargar último auto-backup
+</button>
+<button id="btn-vault-restore-latest-backup" class="px-3 py-2 border rounded-lg hover:bg-gray-50 text-sm">
+  Restaurar último auto-backup
+</button>
+<span id="lbl-last-backup" class="text-xs text-gray-500 ml-2"></span>
+        </div>
+        <input id="vault-import-file" type="file" accept="application/json" class="hidden" />
+        <label class="flex items-center gap-2 text-sm mt-3"><input id="cfg-auto-backup" type="checkbox" /> Auto-backup</label>
+      </div>
+    </div>
+  </div>
+
+  
+<div class="bg-white p-6 rounded-xl shadow-sm border w-full">
+    <h3 class="text-lg font-bold mb-4">Mantenimiento de datos</h3>
+    <p class="text-gray-500 mb-6">Utilidades para demo, reset y diagnóstico.</p>
+
+        <div class="space-y-4">
+      <!-- Cargar demo -->
+      <div class="p-4 bg-blue-50 rounded-lg border border-blue-100">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="min-w-0">
+            <p class="font-semibold text-blue-900">Cargar demo</p>
+            <p class="text-sm text-blue-700">Ingresos/gastos/transferencias/ahorros/metas/presupuestos/conciliaciones.</p>
+          </div>
+          <button id="btn-maint-demo" class="shrink-0 mt-3 sm:mt-0 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition inline-flex items-center gap-2 self-start sm:self-auto">
+            <i data-lucide="database" class="w-4 h-4"></i><span>Ejecutar</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Cargar base -->
+      <div class="p-4 bg-emerald-50 rounded-lg border border-emerald-100">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="min-w-0">
+            <p class="font-semibold text-emerald-900">Cargar base</p>
+            <p class="text-sm text-emerald-700">Tipos base + cuentas base (bancos, billeteras y tarjetas) + ahorros predeterminados.</p>
+          </div>
+          <button id="btn-maint-base" class="shrink-0 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition inline-flex items-center gap-2 mt-3 sm:mt-0 self-start sm:self-auto">
+            <i data-lucide="layers" class="w-4 h-4"></i><span>Ejecutar</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Diagnosticar y reparar -->
+      <div class="p-4 bg-purple-50 rounded-lg border border-purple-100">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="min-w-0">
+            <p class="font-semibold text-purple-900">Diagnosticar y reparar</p>
+            <p class="text-sm text-purple-700">Revisar integridad, corregir periodos, limpiar huérfanos y re-aplicar migraciones.</p>
+          </div>
+          <button id="btn-maint-diagnose" class="shrink-0 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition inline-flex items-center gap-2 mt-3 sm:mt-0 self-start sm:self-auto">
+            <i data-lucide="stethoscope" class="w-4 h-4"></i><span>Ejecutar</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Reset completo -->
+      <div class="p-4 bg-red-50 rounded-lg border border-red-100">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="min-w-0">
+            <p class="font-semibold text-red-900">Reset completo</p>
+            <p class="text-sm text-red-700">Recrea la bóveda del usuario actual desde 0 (solo tipos base + ahorros predeterminados).</p>
+          </div>
+          <button id="btn-maint-reset" class="shrink-0 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition inline-flex items-center gap-2 mt-3 sm:mt-0 self-start sm:self-auto">
+            <i data-lucide="trash-2" class="w-4 h-4"></i><span>Borrar todo</span>
+          </button>
+        </div>
+      </div>
+    </div></div>
+</section>

@@ -1,0 +1,39 @@
+<section class="space-y-4">
+  <div class="bg-white p-4 rounded-xl shadow-sm border flex items-center justify-between flex-wrap gap-3">
+    <div>
+      <h3 class="text-lg font-bold">Tipos de cuenta</h3>
+      <p class="text-sm text-gray-500">Catálogo base para clasificar cuentas (Banco, Tarjeta, Ahorros...).</p>
+    </div>
+    <div class="flex items-center gap-3 w-full sm:w-auto">
+      <div class="relative w-full sm:w-64">
+        <input id="types-filter" type="text" oninput="filterTable('types-filter','types-table-body')" placeholder="Filtrar por nombre..." class="w-full pl-10 pr-4 py-2 border rounded-lg">
+        <i data-lucide="search" class="absolute left-3 top-2.5 text-gray-400 w-5 h-5"></i>
+      </div>
+      <button onclick="openModal('type_new')" class="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 whitespace-nowrap">
+        <i data-lucide="plus"></i><span>Nuevo tipo</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-sm border overflow-x-auto">
+    <table class="w-full text-left">
+      <thead class="bg-gray-50 border-b">
+        <tr>
+          <th class="p-3 font-semibold text-gray-600">Acciones</th>
+          <th class="p-3 font-semibold text-gray-600">Nombre</th>
+          <th class="p-3 font-semibold text-gray-600">Base</th>
+          <th class="p-3 font-semibold text-gray-600">En uso</th>
+        </tr>
+      </thead>
+      <tbody id="types-table-body"></tbody>
+    </table>
+  </div>
+
+  <div class="bg-white p-4 rounded-xl shadow-sm border">
+    <h3 class="text-lg font-bold">Reglas (preview)</h3>
+    <ul class="list-disc ml-5 text-sm text-gray-500 mt-2 space-y-1">
+      <li>Tipos base no se pueden eliminar (se implementa luego).</li>
+      <li>No permitir eliminar tipos en uso.</li>
+    </ul>
+  </div>
+</section>

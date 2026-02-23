@@ -1,0 +1,19 @@
+/* Tema (UI-only). Por ahora solo variables; la lógica se implementará en versiones posteriores. */
+:root{
+  --sgf-bg: #f9fafb;
+  --sgf-surface: #ffffff;
+  --sgf-text: #111827;
+  --sgf-muted: #6b7280;
+  --sgf-border: #e5e7eb;
+}
+
+/* Dark (opcional UI). Actívalo agregando class="theme-dark" al body. */
+body.theme-dark{
+  --sgf-bg: #0b1220;
+  --sgf-surface: #0f172a;
+  --sgf-text: #e5e7eb;
+  --sgf-muted: #94a3b8;
+  --sgf-border: rgba(148,163,184,.25);
+}
+
+body{ background: var(--sgf-bg); color: var(--sgf-text); }

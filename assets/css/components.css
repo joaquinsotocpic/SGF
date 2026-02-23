@@ -1,0 +1,14 @@
+/* Componentes reutilizables */
+
+.sgf-card{
+  background: var(--sgf-surface);
+  border: 1px solid var(--sgf-border);
+}
+
+.sgf-muted{ color: var(--sgf-muted); }
+
+/* Pequeños ajustes para tablas en modo oscuro */
+body.theme-dark .bg-white{ background-color: var(--sgf-surface) !important; }
+body.theme-dark .bg-gray-50{ background-color: rgba(148,163,184,.10) !important; }
+body.theme-dark .text-gray-500, body.theme-dark .text-gray-400, body.theme-dark .text-gray-600{ color: var(--sgf-muted) !important; }
+body.theme-dark .border, body.theme-dark .border-b, body.theme-dark .border-gray-100, body.theme-dark .border-gray-200{ border-color: var(--sgf-border) !important; }

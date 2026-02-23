@@ -1,0 +1,83 @@
+<div class="p-4 md:p-6 space-y-5">
+
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <div>
+      <h1 class="text-xl md:text-2xl font-semibold text-slate-900">Dashboard</h1>
+      <p class="text-sm text-slate-600 mt-1">KPIs por periodo o por todo el historial.</p>
+    </div>
+  </div>
+
+  <!-- Filtros (auto-aplica) -->
+  <div class="rounded-2xl border bg-white p-4">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+      <div class="md:col-span-3">
+        <label class="block text-sm font-medium text-slate-700 mb-1">Año</label>
+        <select id="dash-year" class="w-full p-2 rounded-xl border"></select>
+      </div>
+
+      <div class="md:col-span-3">
+        <label class="block text-sm font-medium text-slate-700 mb-1">Mes</label>
+        <select id="dash-month" class="w-full p-2 rounded-xl border"></select>
+      </div>
+
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-slate-700 mb-1">Moneda</label>
+        <select id="dash-currency" class="w-full p-2 rounded-xl border">
+          <option value="CRC">CRC</option>
+          <option value="USD">USD</option>
+        </select>
+      </div>
+
+      <div class="md:col-span-4">
+        <label class="block text-sm font-medium text-slate-700 mb-1">Cuenta</label>
+        <select id="dash-account" class="w-full p-2 rounded-xl border"></select>
+      </div>
+    </div>
+
+    <div class="mt-3 text-xs text-slate-500">
+      * “(Todos)” aplica al historial completo. El saldo neto se calcula al cierre del último periodo disponible.
+    </div>
+  </div>
+
+  <!-- KPIs (cards full color) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+
+    <div class="rounded-2xl border p-4 text-white bg-slate-900">
+      <div class="flex items-center justify-between">
+        <div class="text-sm/5 opacity-90">Saldo neto</div>
+        <span id="dash-net-badge" class="text-xs px-2 py-1 rounded-full bg-white/15 border border-white/20">Cierre</span>
+      </div>
+      <div class="mt-2 text-2xl font-semibold" data-kpi="net">₡ 0.00</div>
+      <div id="dash-net-sub" class="mt-2 text-xs opacity-80">Al cierre del periodo.</div>
+    </div>
+
+    <div class="rounded-2xl border p-4 text-white bg-emerald-600">
+      <div class="flex items-center justify-between">
+        <div class="text-sm/5 opacity-90">Ingresos</div>
+        <span id="dash-in-badge" class="text-xs px-2 py-1 rounded-full bg-white/15 border border-white/20">Rango</span>
+      </div>
+      <div class="mt-2 text-2xl font-semibold" data-kpi="in">₡ 0.00</div>
+      <div class="mt-2 text-xs opacity-80">Suma de ingresos (rango).</div>
+    </div>
+
+    <div class="rounded-2xl border p-4 text-white bg-rose-600">
+      <div class="flex items-center justify-between">
+        <div class="text-sm/5 opacity-90">Gastos</div>
+        <span id="dash-out-badge" class="text-xs px-2 py-1 rounded-full bg-white/15 border border-white/20">Rango</span>
+      </div>
+      <div class="mt-2 text-2xl font-semibold" data-kpi="out">₡ 0.00</div>
+      <div class="mt-2 text-xs opacity-80">Suma de gastos (rango).</div>
+    </div>
+
+    <div class="rounded-2xl border p-4 text-white bg-indigo-600">
+      <div class="flex items-center justify-between">
+        <div class="text-sm/5 opacity-90">Ahorros</div>
+        <span id="dash-sav-badge" class="text-xs px-2 py-1 rounded-full bg-white/15 border border-white/20">Rango</span>
+      </div>
+      <div class="mt-2 text-2xl font-semibold" data-kpi="sav">₡ 0.00</div>
+      <div class="mt-2 text-xs opacity-80">Depósitos − retiros (rango).</div>
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,33 @@
+<section class="space-y-4">
+  <div class="flex flex-wrap gap-2 items-center justify-between bg-white p-4 rounded-xl shadow-sm border">
+    <div class="flex space-x-2 flex-wrap gap-y-2">
+      <button onclick="openModal('cat_new')" class="bg-green-600 text-white px-3 py-2 rounded-lg flex items-center space-x-2 text-sm">
+        <i data-lucide="plus" class="w-4 h-4"></i><span>Agregar categoría</span>
+      </button>
+      <button onclick="toggleAllNodes(true)" class="bg-gray-200 px-3 py-2 rounded-lg flex items-center space-x-2 text-sm">
+        <i data-lucide="maximize" class="w-4 h-4"></i><span>Expandir</span>
+      </button>
+      <button onclick="toggleAllNodes(false)" class="bg-gray-200 px-3 py-2 rounded-lg flex items-center space-x-2 text-sm">
+        <i data-lucide="minimize" class="w-4 h-4"></i><span>Contraer</span>
+      </button>
+      <button type="button" onclick="window.SGF?.actions?.regenerateTreeColors?.('categorias','tree-categorias')" class="bg-purple-100 text-purple-700 px-3 py-2 rounded-lg flex items-center space-x-2 text-sm">
+        <i data-lucide="palette" class="w-4 h-4"></i><span>Nuevos colores</span>
+      </button>
+    </div>
+
+    <div class="relative w-full md:w-64 mt-2 md:mt-0">
+      <input type="text" id="cat-filter" oninput="filterTree('cat-filter','tree-categorias')" placeholder="Buscar categoría..." class="w-full pl-10 pr-4 py-2 border rounded-lg text-sm" />
+      <i data-lucide="search" class="absolute left-3 top-2.5 text-gray-400 w-4 h-4"></i>
+    </div>
+  </div>
+
+  <div class="bg-white p-6 rounded-xl shadow-sm border min-h-[420px]" id="tree-categorias"></div>
+
+  <div class="bg-white p-4 rounded-xl shadow-sm border">
+    <h3 class="text-lg font-bold">Reglas (preview)</h3>
+    <ul class="list-disc ml-5 text-sm text-gray-500 mt-2 space-y-1">
+      <li>Jerarquía hasta 3 niveles.</li>
+      <li>No eliminar si está en uso (movimientos/ahorros).</li>
+    </ul>
+  </div>
+</section>
