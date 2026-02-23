@@ -19,6 +19,10 @@
   <!-- sql.js (SQLite en navegador) -->
   <script src="https://cdn.jsdelivr.net/npm/sql.js@1.10.2/dist/sql-wasm.js"></script>
 
+  <!-- Exportación PDF -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
   <!-- CSS (Opción 3) -->
   <link rel="stylesheet" href="assets/css/base.css" />
   <link rel="stylesheet" href="assets/css/themes.css" />
@@ -164,6 +168,9 @@
         <button onclick="toggleSidebar()" class="lg:hidden text-gray-600"><i data-lucide="menu"></i></button>
         <h2 id="section-title" class="text-xl font-semibold">Dashboard</h2>
         <div class="flex items-center space-x-3">
+          <button id="btn-export-pdf" type="button" class="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-800 text-sm font-semibold hover:bg-gray-50">
+            <i data-lucide="file-text" class="w-4 h-4"></i><span>Exportar PDF</span>
+          </button>
           <button id="btn-save-session" type="button" class="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700">
             <i data-lucide="save" class="w-4 h-4"></i><span>Guardar</span>
           </button>
@@ -961,6 +968,7 @@
   <script src="assets/js/app/vault.js"></script>
   <script src="assets/js/app/format.js"></script>
   <script src="assets/js/app/fx.js"></script>
+  <script src="assets/js/app/pdf.export.js"></script>
   <script src="assets/js/app/router.js"></script>
   <script src="assets/js/ui/sidebar.js"></script>
   <script src="assets/js/ui/table.js"></script>

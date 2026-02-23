@@ -59,6 +59,7 @@ async function showAppShell() {
   // Wire botones de sesión (solo una vez)
   const btnSave = document.getElementById('btn-save-session');
   const btnExport = document.getElementById('btn-export-vault');
+  const btnExportPdf = document.getElementById('btn-export-pdf');
   if (btnSave && !btnSave.__wired) {
     btnSave.__wired = true;
     btnSave.addEventListener('click', async () => {
@@ -68,6 +69,22 @@ async function showAppShell() {
       } catch (e) {
         console.error(e);
         toast(e?.message || 'No se pudo guardar.');
+      }
+    });
+  }
+
+  if (btnExportPdf && !btnExportPdf.__wired) {
+    btnExportPdf.__wired = true;
+    btnExportPdf.addEventListener('click', async () => {
+      setBusy(btnExportPdf, true);
+      try {
+        const fileName = await window.SGF.exportCurrentViewPdf();
+        toast(`PDF exportado: ${fileName}`);
+      } catch (e) {
+        console.error(e);
+        toast(e?.message || 'No se pudo exportar PDF.');
+      } finally {
+        setBusy(btnExportPdf, false);
       }
     });
   }
