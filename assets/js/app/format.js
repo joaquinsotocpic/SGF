@@ -57,6 +57,16 @@
     return isoToCR(todayISO());
   }
 
+  function escapeHtml(value) {
+    const s = String(value ?? '');
+    return s
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+  }
+
   // Periodo (YYYY-MM) a etiqueta en español.
   function periodEs(period) {
     const p = String(period || '');
@@ -75,5 +85,6 @@
     isoToCR,
     crToISO,
     periodEs,
+    escapeHtml,
   };
 })();

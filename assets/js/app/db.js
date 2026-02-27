@@ -63,11 +63,14 @@
     return withDbHeal(() => {
       const db = ensureDb();
       const stmt = db.prepare(sql);
-      stmt.bind(params);
-      const rows = [];
-      while (stmt.step()) rows.push(stmt.getAsObject());
-      stmt.free();
-      return rows;
+      try {
+        stmt.bind(params);
+        const rows = [];
+        while (stmt.step()) rows.push(stmt.getAsObject());
+        return rows;
+      } finally {
+        try { stmt.free(); } catch (_) {}
+      }
     });
   }
 
@@ -75,10 +78,13 @@
     return withDbHeal(() => {
       const db = ensureDb();
       const stmt = db.prepare(sql);
-      stmt.bind(params);
-      stmt.step();
-      stmt.free();
-      return (typeof db.getRowsModified === 'function') ? db.getRowsModified() : 0;
+      try {
+        stmt.bind(params);
+        stmt.step();
+        return (typeof db.getRowsModified === 'function') ? db.getRowsModified() : 0;
+      } finally {
+        try { stmt.free(); } catch (_) {}
+      }
     });
   }
 

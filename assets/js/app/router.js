@@ -22,10 +22,30 @@ const SGF_ROUTES = {
   config: { title: 'Configuración', view: 'config.html' },
 };
 
+function escapeHtmlSafe(value) {
+  const fn = window.SGF?.format?.escapeHtml;
+  if (typeof fn === 'function') return fn(value);
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
 async function navigate(sectionId) {
   const route = SGF_ROUTES[sectionId] || SGF_ROUTES.dashboard;
   const root = document.getElementById('view-root');
   const titleEl = document.getElementById('section-title');
+
+  if (!root) {
+    console.error('Router: no existe #view-root');
+    return;
+  }
+  if (!titleEl) {
+    console.error('Router: no existe #section-title');
+    return;
+  }
 
   titleEl.textContent = route.title;
 
@@ -52,7 +72,7 @@ async function navigate(sectionId) {
             <li>Abre: <code>http://localhost:8000</code></li>
           </ol>
         </div>
-        <p class="text-xs text-gray-400 mt-4">Error: ${String(err).replaceAll('<','&lt;').replaceAll('>','&gt;')}</p>
+        <p class="text-xs text-gray-400 mt-4">Error: ${escapeHtmlSafe(String(err))}</p>
       </div>
     `;
     return;
