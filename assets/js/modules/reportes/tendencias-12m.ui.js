@@ -52,6 +52,7 @@ window.SGF.modules = window.SGF.modules || {};
   }
 
   function onMount(){
+    window.SGF?.pdf?.bind?.();
     if (!window.SGF?.db) return;
 
     const groupEl=$('tr-group');

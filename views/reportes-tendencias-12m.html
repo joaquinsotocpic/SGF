@@ -1,11 +1,13 @@
-
-<div class="p-4 md:p-6 space-y-5">
+<div id="rep-tendencias-12m" class="p-4 md:p-6 space-y-5">
   <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
     <div>
       <h1 class="text-xl md:text-2xl font-semibold text-slate-900">Tendencias (12 meses)</h1>
       <p class="text-sm text-slate-600 mt-1">Serie mensual por Categorías o Cuentas. Click en una fila para ver movimientos.</p>
     </div>
-    <div class="flex items-center gap-2"><button type="button" data-rep-help="tendencias_12m" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border bg-white hover:bg-slate-50 text-sm">
+    <div class="flex items-center gap-2"><button type="button" data-export-pdf data-pdf-target="rep-tendencias-12m" data-pdf-name="tendencias_12m" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border bg-white hover:bg-slate-50 text-sm">
+        <i data-lucide="file-down" class="w-4 h-4"></i>
+        PDF
+      </button><button type="button" data-rep-help="tendencias_12m" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border bg-white hover:bg-slate-50 text-sm">
         <i data-lucide="circle-help" class="w-4 h-4"></i>
         Ayuda
       </button></div>

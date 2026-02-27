@@ -462,10 +462,15 @@ function loadDemoCategories() {
   }
 
   function insertDemoBudgets() {
-    // Presupuestos demo (>=25) para 2026-02
-    const period = '2026-02';
+    // Presupuestos demo para 12 meses (>=25 por mes)
     const t = nowIso();
-    const up = (categoryId, amount) => {
+    const endDate = new Date();
+    const endYm = `${endDate.getFullYear()}-${String(endDate.getMonth()+1).padStart(2,'0')}`;
+    const monthsBack = 12;
+    const periods = [];
+    for (let i = monthsBack-1; i >= 0; i--) periods.push(addMonths(endYm, -i));
+
+    const up = (period, categoryId, amount) => {
       if (!categoryId) return;
       run(`INSERT INTO budgets(period,type,category_id,currency,amount,is_recurring,active,created_at)
            VALUES (:p,'expense',:c,'CRC',:a,0,1,:t)
@@ -474,49 +479,46 @@ function loadDemoCategories() {
       );
     };
 
-    // Selección de categorías hoja (toma 25)
     const leafCats = select(`
       SELECT c.id
       FROM categories c
       LEFT JOIN categories ch ON ch.parent_id = c.id
       WHERE c.active=1 AND ch.id IS NULL
       ORDER BY c.id
-      LIMIT 60
+      LIMIT 80
     `).map(r => Number(r.id)).filter(Boolean);
 
-    // Si por alguna razón hay pocas hojas, cae a cualquier categoría.
-    const cats = leafCats.length >= 25 ? leafCats : select('SELECT id FROM categories WHERE active=1 ORDER BY id LIMIT 60').map(r => Number(r.id));
+    const cats = leafCats.length >= 25 ? leafCats : select('SELECT id FROM categories WHERE active=1 ORDER BY id LIMIT 80').map(r => Number(r.id));
 
-    for (let i = 0; i < Math.min(25, cats.length); i++) {
-      // montos escalonados, deterministas
-      const amt = 25000 + (i * 7500);
-      up(cats[i], amt);
-    }
+    periods.forEach((p, mi) => {
+      for (let i = 0; i < Math.min(25, cats.length); i++) {
+        const amt = 25000 + (i * 7500) + (mi * 900); // sube un poco por mes
+        up(p, cats[i], amt);
+      }
+    });
   }
 
   function insertDemoReconciliations() {
-    // Conciliaciones demo (25 filas): 5 cuentas x 5 periodos
-    // Objetivo UX: dejar 1 mes CERRADO con datos listos para probar bloqueo,
-    // y otro mes ABIERTO para comparar.
-    // -> BAC Colones 2026-02: CERRADO
-    // -> BAC Colones 2026-01: ABIERTO
+    // Conciliaciones demo: 5 cuentas x 12 periodos (sin cierres para demo estable)
     const t = nowIso();
-    const aBac = Number(scalar("SELECT id FROM accounts WHERE name='BAC Colones' LIMIT 1") || 0);
     const accounts = [
-      aBac,
+      Number(scalar("SELECT id FROM accounts WHERE name='BAC Colones' LIMIT 1") || 0),
       Number(scalar("SELECT id FROM accounts WHERE name='BCR Colones' LIMIT 1") || 0),
       Number(scalar("SELECT id FROM accounts WHERE name='BN Colones' LIMIT 1") || 0),
       Number(scalar("SELECT id FROM accounts WHERE name='Promerica Colones' LIMIT 1") || 0),
       Number(scalar("SELECT id FROM accounts WHERE name='Billetera jksotorojas' LIMIT 1") || 0),
     ].filter(Boolean);
 
-    const periods = ['2025-10', '2025-11', '2025-12', '2026-01', '2026-02'];
+    const endDate = new Date();
+    const endYm = `${endDate.getFullYear()}-${String(endDate.getMonth()+1).padStart(2,'0')}`;
+    const monthsBack = 12;
+    const periods = [];
+    for (let i = monthsBack-1; i >= 0; i--) periods.push(addMonths(endYm, -i));
+
     accounts.forEach((aid) => {
       periods.forEach((p) => {
-        // Solo 1 cierre fuerte para evitar confusión en demo
-        const closed = (aid === aBac && p === '2026-02') ? 1 : 0;
         run(`INSERT OR IGNORE INTO reconciliations(period,account_id,bank_ending,closed,created_at,updated_at)
-             VALUES (:p,:a,0,:c,:t,:t)`, { ':p': p, ':a': aid, ':c': closed, ':t': t });
+             VALUES (:p,:a,0,0,:t,:t)`, { ':p': p, ':a': aid, ':t': t });
       });
     });
   }
@@ -533,68 +535,91 @@ function loadDemoCategories() {
 
     const g1 = ensureGoal('Fondo 02 - Colones', 'CRC', 500000);
     const g2 = ensureGoal('Fondo 03 - Dólares', 'USD', 1000);
-    const g3 = ensureGoal('Fondo 01 - Alquiler', 'CRC', 350000);
+    ensureGoal('Fondo 01 - Alquiler', 'CRC', 350000);
 
     const accFrom = Number(scalar("SELECT id FROM accounts WHERE name='BAC Colones' LIMIT 1") || 0);
     const accTo = Number(scalar("SELECT id FROM accounts WHERE name='Ahorros Colones' LIMIT 1") || 0);
     const cat = findCategoryIdByName('Fondo 02 - Colones', findCategoryIdByName('Fondos de Inversión', findCategoryIdByName('Bancarios', null)));
     if (!accFrom || !accTo) return;
 
-    const ins = (date, amount, kind, refId = null) => {
+    const endDate = new Date();
+    const endYm = `${endDate.getFullYear()}-${String(endDate.getMonth()+1).padStart(2,'0')}`;
+    const monthsBack = 12;
+    const periods = [];
+    for (let i = monthsBack-1; i >= 0; i--) periods.push(addMonths(endYm, -i));
+
+    const ins = (date, amount, kind, goalId, acc1, acc2, catId, desc, refId = null) => {
       const period = toPeriod(date);
       run(`INSERT INTO movements
         (type,date,period,account_id,account_to_id,category_id,amount,description,is_split,is_opening,is_savings,savings_kind,goal_id,savings_ref_id,created_at)
         VALUES ('transfer',:d,:p,:a1,:a2,:c,:amt,:desc,0,0,1,:k,:g,:rid,:t)`,
-        { ':d': date, ':p': period, ':a1': accFrom, ':a2': accTo, ':c': cat || null, ':amt': amount, ':desc': 'Demo ahorro', ':k': kind, ':g': g1 || null, ':rid': refId, ':t': t }
+        { ':d': date, ':p': period, ':a1': acc1, ':a2': acc2, ':c': catId || null, ':amt': amount, ':desc': desc || 'Demo ahorro', ':k': kind, ':g': goalId || null, ':rid': refId, ':t': t }
       );
       return Number(scalar('SELECT last_insert_rowid()') || 0);
     };
-    // 25 movimientos de ahorro (deposits + algunos withdraw referenciando depósitos)
-    const deposits = [];
-    for (let i = 0; i < 18; i++) {
-      const day = String(1 + (i % 27)).padStart(2, '0');
-      const date = `2026-02-${day}`;
-      const amount = 15000 + (i * 2500);
-      const id = ins(date, amount, 'deposit', null);
-      if (id) deposits.push(id);
-    }
-    for (let i = 0; i < 7; i++) {
-      const day = String(2 + (i * 3)).padStart(2, '0');
-      const date = `2026-02-${day}`;
-      const amount = 5000 + (i * 1500);
-      const refId = deposits[i] || null;
-      ins(date, amount, 'withdraw', refId);
-    }
 
-    // Un par en USD si existe cuenta
+    // 2 depósitos por mes + algunos retiros trimestrales (CRC)
+    const deposits = [];
+    periods.forEach((p, mi) => {
+      const d1 = ins(`${p}-05`, 15000 + (mi*500), 'deposit', g1, accFrom, accTo, cat, 'Demo ahorro', null);
+      const d2 = ins(`${p}-20`, 18000 + (mi*600), 'deposit', g1, accFrom, accTo, cat, 'Demo ahorro', null);
+      if (d1) deposits.push(d1);
+      if (d2) deposits.push(d2);
+
+      if (mi % 3 === 2) {
+        const refId = deposits[Math.max(0, deposits.length-2)] || null;
+        ins(`${p}-25`, 7000 + (mi*250), 'withdraw', g1, accFrom, accTo, cat, 'Demo retiro ahorro', refId);
+      }
+    });
+
+    // USD: 1 depósito por mes si existe cuenta
     const accFromUsd = Number(scalar("SELECT id FROM accounts WHERE name='BAC Dólares' LIMIT 1") || 0);
     const accToUsd = Number(scalar("SELECT id FROM accounts WHERE name='Ahorros Dólares' LIMIT 1") || 0);
     if (accFromUsd && accToUsd) {
       const catUsd = findCategoryIdByName('Fondo 03 - Dólares', findCategoryIdByName('Fondos de Inversión', findCategoryIdByName('Bancarios', null)));
-      const insUsd = (date, amount, kind) => {
-        const period = toPeriod(date);
-        run(`INSERT INTO movements
-          (type,date,period,account_id,account_to_id,category_id,amount,description,is_split,is_opening,is_savings,savings_kind,goal_id,created_at)
-          VALUES ('transfer',:d,:p,:a1,:a2,:c,:amt,:desc,0,0,1,:k,:g,:t)`,
-          { ':d': date, ':p': period, ':a1': accFromUsd, ':a2': accToUsd, ':c': catUsd || null, ':amt': amount, ':desc': 'Demo ahorro USD', ':k': kind, ':g': g2 || null, ':t': t }
-        );
-      };
-      insUsd('2026-02-06', 50, 'deposit');
-      insUsd('2026-02-21', 20, 'withdraw');
+      periods.forEach((p, mi) => {
+        ins(`${p}-10`, 40 + (mi*3), 'deposit', g2, accFromUsd, accToUsd, catUsd, 'Demo ahorro USD', null);
+        if (mi % 4 === 3) ins(`${p}-22`, 15 + (mi*2), 'withdraw', g2, accFromUsd, accToUsd, catUsd, 'Demo retiro USD', null);
+      });
     }
   }
 
   function insertDemoMovements() {
     const t = nowIso();
-    const aBAC = Number(scalar("SELECT id FROM accounts WHERE name='BAC Colones' LIMIT 1") || 0);
-    const aWallet = Number(scalar("SELECT id FROM accounts WHERE name='Billetera jksotorojas' LIMIT 1") || 0);
-    const aWalletP = Number(scalar("SELECT id FROM accounts WHERE name='Billeteras' LIMIT 1") || 0);
-    const aTarj = Number(scalar("SELECT id FROM accounts WHERE name='BAC Walmart Colones' LIMIT 1") || 0);
+    const endDate = new Date();
+    const endYm = `${endDate.getFullYear()}-${String(endDate.getMonth()+1).padStart(2,'0')}`;
+    const monthsBack = 12; // demo grande (mínimo 12 meses)
+    const periods = [];
+    for (let i = monthsBack-1; i >= 0; i--) periods.push(addMonths(endYm, -i));
 
-    const catSalary = findCategoryIdByName('Primer Quincena', findCategoryIdByName('Salario', findCategoryIdByName('Ingresos', null)));
+    const aBAC = Number(scalar("SELECT id FROM accounts WHERE name='BAC Colones' LIMIT 1") || 0);
+    const aBCR = Number(scalar("SELECT id FROM accounts WHERE name='BCR Colones' LIMIT 1") || 0);
+    const aTarj = Number(scalar("SELECT id FROM accounts WHERE name='BAC Walmart Colones' LIMIT 1") || 0);
+    const aWallet = Number(scalar("SELECT id FROM accounts WHERE name='Billetera jksotorojas' LIMIT 1") || 0)
+      || Number(scalar("SELECT id FROM accounts WHERE name='Billetera jksotorojas' AND parent_id=(SELECT id FROM accounts WHERE name='Billeteras' LIMIT 1) LIMIT 1") || 0);
+
+    const catIncome = findCategoryIdByName('Primer Quincena', findCategoryIdByName('Salario', findCategoryIdByName('Ingresos', null)));
     const catSuper = findCategoryIdByName('Supermercado', findCategoryIdByName('Supermercado', null)) || findCategoryIdByName('Supermercado', null);
-    const catNetflix = findCategoryIdByName('Netflix', findCategoryIdByName('Suscripciones', findCategoryIdByName('Entretenimiento', null)));
-    const catCNFL = findCategoryIdByName('CNFL', findCategoryIdByName('Servicios Públicos', null));
+    const catServices = findCategoryIdByName('CNFL', findCategoryIdByName('Servicios Públicos', null)) || findCategoryIdByName('Servicios Públicos', null);
+    const catSubs = findCategoryIdByName('Netflix', findCategoryIdByName('Suscripciones', findCategoryIdByName('Entretenimiento', null)))
+      || findCategoryIdByName('Suscripciones', findCategoryIdByName('Entretenimiento', null));
+    const catRest = findCategoryIdByName('Restaurantes y Otros', null) || findCategoryIdByName('Restaurantes', null);
+    const catTrans = findCategoryIdByName('Transporte', null);
+
+    const templates = [
+      { type: 'expense', cat: catSuper, desc: 'Supermercado (demo)' },
+      { type: 'expense', cat: catServices, desc: 'Servicios públicos (demo)' },
+      { type: 'expense', cat: catSubs, desc: 'Suscripción (demo)' },
+      { type: 'expense', cat: catRest, desc: 'Restaurante (demo)' },
+      { type: 'expense', cat: catTrans, desc: 'Transporte (demo)' },
+    ];
+
+    const accounts = [
+      { id: aBAC, name: 'BAC Colones' },
+      { id: aBCR, name: 'BCR Colones' },
+      { id: aTarj, name: 'BAC Walmart Colones' },
+      { id: aWallet, name: 'Billetera jksotorojas' },
+    ].filter(a => a.id);
 
     const ins = (type, date, accountId, amount, categoryId, desc, accountToId = null) => {
       if (!accountId) return;
@@ -605,45 +630,36 @@ function loadDemoCategories() {
       );
     };
 
-    const walletId = aWallet || (aWalletP ? findAccountIdByName('Billetera jksotorojas', aWalletP) : 0);
+    // Generación determinista por mes (incomes + gastos + transferencias)
+    periods.forEach((p, mi) => {
+      const [y, m] = p.split('-');
+      const base = mi * 17;
 
-    // Generador determinista (>=25 registros)
-    const templates = [
-      { type: 'income', cat: catSalary, desc: 'Salario (demo)' },
-      { type: 'expense', cat: catSuper, desc: 'Supermercado (demo)' },
-      { type: 'expense', cat: catCNFL, desc: 'Servicios públicos (demo)' },
-      { type: 'expense', cat: catNetflix, desc: 'Suscripción (demo)' },
-    ];
+      // 2 ingresos por mes
+      if (aBAC && catIncome) {
+        ins('income', `${p}-15`, aBAC, 850000 + (base * 900), catIncome, 'Salario (demo)');
+        ins('income', `${p}-28`, aBAC, 820000 + (base * 700), catIncome, 'Salario (demo)');
+      }
 
-    const accounts = [
-      { id: aBAC, name: 'BAC Colones' },
-      { id: Number(scalar("SELECT id FROM accounts WHERE name='BCR Colones' LIMIT 1") || 0), name: 'BCR Colones' },
-      { id: aTarj, name: 'BAC Walmart Colones' },
-      { id: walletId, name: 'Billetera jksotorojas' },
-    ].filter(a => a.id);
+      // 28 gastos por mes
+      for (let i = 0; i < 28; i++) {
+        const day = String(1 + ((i * 3 + base) % 27)).padStart(2, '0');
+        const date = `${p}-${day}`;
+        const tpl = templates[(i + base) % templates.length];
+        const acc = accounts[(i + base) % accounts.length];
+        const amt = 3500 + ((i + base) * 1200);
 
-    // 22 movimientos en Febrero
-    for (let i = 0; i < 22; i++) {
-      const day = String(1 + (i % 27)).padStart(2, '0');
-      const date = `2026-02-${day}`;
-      const tpl = templates[i % templates.length];
-      const acc = accounts[i % accounts.length];
-      const amt = tpl.type === 'income' ? (800000 + (i * 2500)) : (4500 + (i * 1700));
-      // Evita ingresos en tarjetas/billeteras
-      const accountId = (tpl.type === 'income' && acc.name.includes('Walmart')) ? aBAC : acc.id;
-      ins(tpl.type, date, accountId, amt, tpl.cat, tpl.desc);
-    }
-    // 3 transferencias
-    if (walletId && aBAC) {
-      ins('transfer', '2026-02-02', aBAC, 20000, null, 'Efectivo (demo)', walletId);
-      ins('transfer', '2026-02-09', aBAC, 15000, null, 'Efectivo (demo)', walletId);
-      ins('transfer', '2026-02-16', aBAC, 18000, null, 'Efectivo (demo)', walletId);
-    }
+        // evita ingresos en tarjetas/billetera; para gastos sí permite
+        const accountId = acc.id;
+        ins('expense', date, accountId, amt, tpl.cat, tpl.desc);
+      }
 
-    // 3 en Enero (antes de cerrar el mes por conciliación demo)
-    ins('income', '2026-01-15', aBAC, 850000, catSalary, 'Salario (demo)');
-    ins('expense', '2026-01-18', aTarj, 45000, catSuper, 'Supermercado (demo)');
-    ins('expense', '2026-01-22', aBAC, 8900, catNetflix, 'Netflix (demo)');
+      // 2 transferencias por mes (BAC -> billetera)
+      if (aWallet && aBAC) {
+        ins('transfer', `${p}-02`, aBAC, 20000 + (mi * 800), null, 'Efectivo (demo)', aWallet);
+        ins('transfer', `${p}-16`, aBAC, 15000 + (mi * 600), null, 'Efectivo (demo)', aWallet);
+      }
+    });
   }
 
   async function loadBase() {

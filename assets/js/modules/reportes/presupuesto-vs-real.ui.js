@@ -154,8 +154,10 @@ window.SGF.modules = window.SGF.modules || {};
     return { label, whereSql, params };
   }
 
-  function onMount(){
+  function onMount(root){
+    window.SGF?.pdf?.bind?.(root || document);
     if (!window.SGF?.db) return;
+
 
     const yearEl=$('bvr-year');
     const monthEl=$('bvr-month');

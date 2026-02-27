@@ -104,12 +104,12 @@
         <div class="space-y-4">
       <!-- Cargar demo -->
       <div class="p-4 bg-blue-50 rounded-lg border border-blue-100">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-center justify-between gap-4">
           <div class="min-w-0">
             <p class="font-semibold text-blue-900">Cargar demo</p>
-            <p class="text-sm text-blue-700">Ingresos/gastos/transferencias/ahorros/metas/presupuestos/conciliaciones.</p>
+            <p class="text-sm text-blue-700">Ingresos + gastos + transferencias + ahorros + metas + presupuestos + conciliaciones.</p>
           </div>
-          <button id="btn-maint-demo" class="shrink-0 mt-3 sm:mt-0 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition inline-flex items-center gap-2 self-start sm:self-auto">
+          <button id="btn-maint-demo" class="shrink-0 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition inline-flex items-center gap-2">
             <i data-lucide="database" class="w-4 h-4"></i><span>Ejecutar</span>
           </button>
         </div>
@@ -117,12 +117,12 @@
 
       <!-- Cargar base -->
       <div class="p-4 bg-emerald-50 rounded-lg border border-emerald-100">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-center justify-between gap-4">
           <div class="min-w-0">
             <p class="font-semibold text-emerald-900">Cargar base</p>
             <p class="text-sm text-emerald-700">Tipos base + cuentas base (bancos, billeteras y tarjetas) + ahorros predeterminados.</p>
           </div>
-          <button id="btn-maint-base" class="shrink-0 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition inline-flex items-center gap-2 mt-3 sm:mt-0 self-start sm:self-auto">
+          <button id="btn-maint-base" class="shrink-0 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition inline-flex items-center gap-2">
             <i data-lucide="layers" class="w-4 h-4"></i><span>Ejecutar</span>
           </button>
         </div>
@@ -130,12 +130,12 @@
 
       <!-- Diagnosticar y reparar -->
       <div class="p-4 bg-purple-50 rounded-lg border border-purple-100">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-center justify-between gap-4">
           <div class="min-w-0">
             <p class="font-semibold text-purple-900">Diagnosticar y reparar</p>
             <p class="text-sm text-purple-700">Revisar integridad, corregir periodos, limpiar huérfanos y re-aplicar migraciones.</p>
           </div>
-          <button id="btn-maint-diagnose" class="shrink-0 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition inline-flex items-center gap-2 mt-3 sm:mt-0 self-start sm:self-auto">
+          <button id="btn-maint-diagnose" class="shrink-0 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition inline-flex items-center gap-2">
             <i data-lucide="stethoscope" class="w-4 h-4"></i><span>Ejecutar</span>
           </button>
         </div>
@@ -143,15 +143,14 @@
 
       <!-- Reset completo -->
       <div class="p-4 bg-red-50 rounded-lg border border-red-100">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-center justify-between gap-4">
           <div class="min-w-0">
             <p class="font-semibold text-red-900">Reset completo</p>
             <p class="text-sm text-red-700">Recrea la bóveda del usuario actual desde 0 (solo tipos base + ahorros predeterminados).</p>
           </div>
-          <button id="btn-maint-reset" class="shrink-0 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition inline-flex items-center gap-2 mt-3 sm:mt-0 self-start sm:self-auto">
+          <button id="btn-maint-reset" class="shrink-0 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition inline-flex items-center gap-2">
             <i data-lucide="trash-2" class="w-4 h-4"></i><span>Borrar todo</span>
           </button>
         </div>
       </div>
-    </div></div>
-</section>
+    </div></section>

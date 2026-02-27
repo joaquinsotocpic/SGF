@@ -11,6 +11,8 @@ window.SGF.modules = window.SGF.modules || {};
     { value: '10', label: 'octubre' }, { value: '11', label: 'noviembre' }, { value: '12', label: 'diciembre' },
   ];
 
+  let tfootEl = null;
+
   function dbAll(sql, params = {}) {
     return window.SGF?.db?.select?.(sql, params) || [];
   }
@@ -224,7 +226,34 @@ window.SGF.modules = window.SGF.modules || {};
     }
 
     const html = [];
+    
+    // Totales generales (independiente de expand/contraer)
+    const grand = rows.reduce((a,r)=>({
+      net: a.net + Number(r.net||0),
+      income: a.income + Number(r.income||0),
+      expense: a.expense + Number(r.expense||0),
+      savings: a.savings + Number(r.savings||0),
+    }), { net:0, income:0, expense:0, savings:0 });
+
+    if (tfootEl) {
+      const set = (k, val, clsKind) => {
+        const cell = tfootEl.querySelector(`[data-tf="${k}"]`);
+        if (!cell) return;
+        cell.className = `py-3 px-3 text-right tabular-nums font-semibold ${moneyClass(val, clsKind)}`;
+        cell.textContent = fmtMoney(val, currency);
+      };
+      set('net', grand.net, 'saldo');
+      set('income', grand.income, 'ingreso');
+      set('expense', grand.expense, 'gasto');
+      set('savings', grand.savings, 'ahorro');
+    }
+
+
     if (!rows.length) {
+      if (tfootEl) {
+        tfootEl.querySelectorAll('[data-tf]').forEach(c=> c.textContent='—');
+      }
+
       tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500">Sin datos</td></tr>`;
       return;
     }
@@ -339,6 +368,7 @@ window.SGF.modules = window.SGF.modules || {};
     const curEl = document.getElementById('rep-currency');
     const accEl = document.getElementById('rep-account');
     const tbody = document.getElementById('rep-accounts-tbody');
+    tfootEl = document.getElementById('rep-accounts-tfoot');
     let orderEl = document.getElementById('rep-order');
     let typEl = document.getElementById('rep-type');
     let expandBtn = document.getElementById('rep-expand-btn');

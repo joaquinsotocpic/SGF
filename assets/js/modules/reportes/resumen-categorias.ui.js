@@ -178,8 +178,12 @@ window.SGF.modules = window.SGF.modules || {};
     try { window.lucide?.createIcons?.(); } catch(_){}
   }
 
-  function onMount(){
+  function onMount(root){
+    window.SGF?.pdf?.bind?.(root || document);
     if (!window.SGF?.db) return;
+
+    const $ = (id)=> (root && root.querySelector ? root.querySelector('#'+id) : null) || document.getElementById(id);
+
 
     const yearEl=$('rcat-year');
     const monthEl=$('rcat-month');

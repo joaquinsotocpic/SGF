@@ -53,6 +53,7 @@ window.SGF.modules = window.SGF.modules || {};
   function periodLabel(year, month){ return `${year}-${String(month).padStart(2,'0')}`; }
 
   function onMount(){
+    window.SGF?.pdf?.bind?.();
     if (!window.SGF?.db) return;
 
     const viewEl=$('bal-view');

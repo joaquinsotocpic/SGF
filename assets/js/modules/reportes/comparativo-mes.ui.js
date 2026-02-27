@@ -43,6 +43,7 @@ window.SGF.modules = window.SGF.modules || {};
   }
 
   function onMount(){
+    window.SGF?.pdf?.bind?.();
     if (!window.SGF?.db) return;
     const yearEl=$('mom-year');
     const monthEl=$('mom-month');
