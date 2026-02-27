@@ -1,5 +1,16 @@
 window.SGF = window.SGF || {}; window.SGF.modules = window.SGF.modules || {};
 
+function escapeHtmlSafe(value) {
+  const fn = window.SGF?.format?.escapeHtml;
+  if (typeof fn === 'function') return fn(value);
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
 function buildTree(rows) {
   const byId = new Map();
   rows.forEach(r => byId.set(r.id, { ...r, label: r.name, children: [] }));
@@ -158,7 +169,7 @@ function renderTiposCuenta() {
           ${(() => { const u = usage.get(Number(r.id)) || 0; const dis = (Number(r.is_base)||0)===1 || u>0; const ttl = (Number(r.is_base)||0)===1 ? "Tipo base" : (u>0 ? "En uso" : "Eliminar"); return `<button type="button" class="text-red-600 hover:bg-red-50 p-1 rounded ${dis ? "opacity-40 cursor-not-allowed" : ""}" title="${ttl}" data-action="type-delete" data-id="${r.id}" ${dis ? "disabled" : ""}><i data-lucide="trash" class="w-4 h-4"></i></button>`; })()}
         </div>
       </td>
-      <td class="p-3 text-sm font-medium">${r.name}</td>
+      <td class="p-3 text-sm font-medium">${escapeHtmlSafe(r.name)}</td>
       <td class="p-3">${r.is_base ? '<span class="px-2 py-0.5 rounded bg-gray-200 text-gray-800 text-xs font-bold">Base</span>' : '-'}</td>
       <td class="p-3">${usageBadge(usage.get(Number(r.id)) || 0)}</td>
     </tr>
@@ -690,5 +701,4 @@ window.SGF.modules.tipos = {
   function dbSelectMovementById(id) {
     return window.SGF.db.select('SELECT * FROM movements WHERE id=:id LIMIT 1', { ':id': Number(id) })[0] || null;
   }
-
 

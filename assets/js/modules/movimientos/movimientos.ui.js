@@ -59,6 +59,17 @@ window.SGF.modules = window.SGF.modules || {};
     return typeof fn === 'function' ? fn() : isoToCR(todayISO());
   }
 
+  function escapeHtmlSafe(value) {
+    const fn = window.SGF?.format?.escapeHtml;
+    if (typeof fn === 'function') return fn(value);
+    return String(value ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+  }
+
   // Date picker para CR (dd/mm/aaaa) usando flatpickr si está disponible.
   // Mantiene el input como texto para permitir escritura manual.
   function initCRDatePicker(inputEl) {
@@ -925,7 +936,7 @@ return {
           <td class="p-3 text-sm">${r.account_name || '-'}</td>
           <td class="p-3 text-sm">${r.account_to_name || '-'}</td>
           <td class="p-3 text-sm">${catLabel}</td>
-          <td class="p-3 text-sm">${(r.description || '').replace(/</g,'&lt;')}</td>
+          <td class="p-3 text-sm">${escapeHtmlSafe(r.description || '')}</td>
           <td class="p-3 text-sm font-semibold">${amtTxt}</td>
         </tr>
       `;
@@ -1616,9 +1627,9 @@ return {
               </button>
             </div>
           </td>
-          <td class="p-2 font-medium">${String(r.name || '').replace(/</g,'&lt;')}</td>
+          <td class="p-2 font-medium">${escapeHtmlSafe(r.name || '')}</td>
           <td class="p-2"><span class="px-2 py-0.5 rounded text-xs font-bold ${badge}">${typeUi}</span></td>
-          <td class="p-2">${String(acc).replace(/</g,'&lt;')}${String(accTo).replace(/</g,'&lt;')}</td>
+          <td class="p-2">${escapeHtmlSafe(acc)}${escapeHtmlSafe(accTo)}</td>
           <td class="p-2">${Number(r.day || 1)}</td>
           <td class="p-2 font-semibold">${formatMoney(Number(r.amount || 0), cur)}</td>
           <td class="p-2">${Number(r.active || 0) ? 'Sí' : 'No'}</td>
