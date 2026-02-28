@@ -123,7 +123,7 @@ function renderTree(containerId, kind) {
         <button type="button" onclick="toggleCollapse(this)" class="p-1 hover:text-blue-600 ${hasChildren ? '' : 'invisible'}">
           <i data-lucide="chevron-down" class="w-4 h-4"></i>
         </button>
-        <span class="flex-1 text-sm font-medium" data-tree-label>${node.name}</span>
+        <span class="flex-1 text-sm font-medium" data-tree-label>${escapeHtmlSafe(node.name)}</span>
         <span class="mr-2">${usageBadge(usage.get(Number(node.id)) || 0)}</span>
         <div class="flex space-x-1">
           <button type="button" class="text-green-600 p-1 hover:bg-green-50 rounded" title="Agregar hijo"
@@ -251,7 +251,7 @@ async function fillAccountTypeOptions(selectId, selectedId = null) {
   const sel = document.getElementById(selectId);
   if (!sel) return;
   const types = window.SGF.db.select('SELECT id, name FROM account_types WHERE active=1 ORDER BY name');
-  sel.innerHTML = types.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+  sel.innerHTML = types.map(t => `<option value="${t.id}">${escapeHtmlSafe(t.name)}</option>`).join('');
   if (selectedId) sel.value = String(selectedId);
 }
 
@@ -260,7 +260,7 @@ async function fillAccountParentOptions(selectId, selectedId = null, excludeId =
   if (!sel) return;
   let rows = window.SGF.db.select('SELECT id, name FROM accounts ORDER BY name');
   if (excludeId) rows = rows.filter(r => r.id !== excludeId);
-  sel.innerHTML = `<option value="">(Raíz)</option>` + rows.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+  sel.innerHTML = `<option value="">(Raíz)</option>` + rows.map(a => `<option value="${a.id}">${escapeHtmlSafe(a.name)}</option>`).join('');
   sel.value = selectedId ? String(selectedId) : '';
 }
 
@@ -269,7 +269,7 @@ async function fillCategoryParentOptions(selectId, selectedId = null, excludeId 
   if (!sel) return;
   let rows = window.SGF.db.select('SELECT id, name FROM categories ORDER BY name');
   if (excludeId) rows = rows.filter(r => r.id !== excludeId);
-  sel.innerHTML = `<option value="">(Raíz)</option>` + rows.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  sel.innerHTML = `<option value="">(Raíz)</option>` + rows.map(c => `<option value="${c.id}">${escapeHtmlSafe(c.name)}</option>`).join('');
   sel.value = selectedId ? String(selectedId) : '';
 }
 

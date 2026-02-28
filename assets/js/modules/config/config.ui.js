@@ -1,5 +1,18 @@
 window.SGF = window.SGF || {}; window.SGF.modules = window.SGF.modules || {};
 
+
+function escHtml(value) {
+  const fn = window.SGF?.format?.escapeHtml;
+  if (typeof fn === 'function') return fn(value);
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+
 function isoToCR(iso) {
   const fn = window.SGF?.format?.isoToCR;
   return typeof fn === 'function' ? fn(iso) : String(iso || '');
@@ -52,8 +65,8 @@ function renderFxTable() {
       <td class="p-3 text-sm font-semibold">${Number(r.rate).toFixed(2)}</td>
       <td class="p-3">
         <div class="flex gap-2">
-          <button type="button" class="text-blue-600 hover:bg-blue-50 p-1 rounded" data-action="fx-edit" data-date="${r.rate_date}"><i data-lucide="edit" class="w-4 h-4"></i></button>
-          <button type="button" class="text-red-600 hover:bg-red-50 p-1 rounded" data-action="fx-delete" data-date="${r.rate_date}"><i data-lucide="trash" class="w-4 h-4"></i></button>
+          <button type="button" class="text-blue-600 hover:bg-blue-50 p-1 rounded" data-action="fx-edit" data-date="${escHtml(r.rate_date)}"><i data-lucide="edit" class="w-4 h-4"></i></button>
+          <button type="button" class="text-red-600 hover:bg-red-50 p-1 rounded" data-action="fx-delete" data-date="${escHtml(r.rate_date)}"><i data-lucide="trash" class="w-4 h-4"></i></button>
         </div>
       </td>
     </tr>
@@ -109,7 +122,7 @@ function renderSavingsDefaultSelects() {
   );
   const build = (sel, currency) => {
     const opts = ['<option value="">(Sin asignar)</option>']
-      .concat(accounts.filter(a => String(a.currency) === currency).map(a => `<option value="${a.id}">${a.name}</option>`));
+      .concat(accounts.filter(a => String(a.currency) === currency).map(a => `<option value="${a.id}">${escHtml(a.name)}</option>`));
     sel.innerHTML = opts.join('');
   };
   build(selCrc, 'CRC');
