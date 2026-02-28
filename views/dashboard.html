@@ -5,6 +5,16 @@
       <h1 class="text-xl md:text-2xl font-semibold text-slate-900">Dashboard</h1>
       <p class="text-sm text-slate-600 mt-1">KPIs por periodo o por todo el historial.</p>
     </div>
+    <div class="flex flex-wrap gap-2">
+      <button type="button" onclick="window.SGF?.navigate?.('movimientos')" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border bg-white hover:bg-slate-50 text-sm">
+        <i data-lucide="plus" class="w-4 h-4"></i>
+        Nuevo movimiento
+      </button>
+      <button type="button" onclick="window.SGF?.navigate?.('reportes_presupuesto_vs_real')" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border bg-white hover:bg-slate-50 text-sm">
+        <i data-lucide="target" class="w-4 h-4"></i>
+        Ver presupuesto
+      </button>
+    </div>
   </div>
 
   <!-- Filtros (auto-aplica) -->
@@ -49,6 +59,7 @@
       </div>
       <div class="mt-2 text-2xl font-semibold" data-kpi="net">₡ 0.00</div>
       <div id="dash-net-sub" class="mt-2 text-xs opacity-80">Al cierre del periodo.</div>
+      <div id="dash-net-delta" class="mt-1 text-xs font-medium opacity-90">vs periodo anterior: —</div>
     </div>
 
     <div class="rounded-2xl border p-4 text-white bg-emerald-600">
@@ -58,6 +69,7 @@
       </div>
       <div class="mt-2 text-2xl font-semibold" data-kpi="in">₡ 0.00</div>
       <div class="mt-2 text-xs opacity-80">Suma de ingresos (rango).</div>
+      <div id="dash-in-delta" class="mt-1 text-xs font-medium opacity-90">vs periodo anterior: —</div>
     </div>
 
     <div class="rounded-2xl border p-4 text-white bg-rose-600">
@@ -67,6 +79,7 @@
       </div>
       <div class="mt-2 text-2xl font-semibold" data-kpi="out">₡ 0.00</div>
       <div class="mt-2 text-xs opacity-80">Suma de gastos (rango).</div>
+      <div id="dash-out-delta" class="mt-1 text-xs font-medium opacity-90">vs periodo anterior: —</div>
     </div>
 
     <div class="rounded-2xl border p-4 text-white bg-indigo-600">
@@ -76,6 +89,7 @@
       </div>
       <div class="mt-2 text-2xl font-semibold" data-kpi="sav">₡ 0.00</div>
       <div class="mt-2 text-xs opacity-80">Depósitos − retiros (rango).</div>
+      <div id="dash-sav-delta" class="mt-1 text-xs font-medium opacity-90">vs periodo anterior: —</div>
     </div>
 
   </div>
