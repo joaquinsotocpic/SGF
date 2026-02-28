@@ -22,6 +22,47 @@ window.SGF.modules = window.SGF.modules || {};
     }
   }
 
+
+
+  function formatPercent(n) {
+    const v = Number(n || 0);
+    const sign = v > 0 ? '+' : '';
+    return `${sign}${v.toFixed(1)}%`;
+  }
+
+  function previousPeriod(year, month) {
+    const d = new Date();
+    if (year === 'all' && month === 'all') {
+      const m = d.getMonth() + 1;
+      const y = d.getFullYear();
+      return m === 1
+        ? { year: String(y - 1), month: '12' }
+        : { year: String(y), month: String(m - 1).padStart(2, '0') };
+    }
+    if (year !== 'all' && month !== 'all') {
+      const y = Number(year);
+      const m = Number(month);
+      return m === 1
+        ? { year: String(y - 1), month: '12' }
+        : { year: String(y), month: String(m - 1).padStart(2, '0') };
+    }
+    if (year !== 'all' && month === 'all') {
+      return { year: String(Number(year) - 1), month: 'all' };
+    }
+    return { year: 'all', month: 'all' };
+  }
+
+  function setDelta(name, current, previous) {
+    const el = document.getElementById(`dash-${name}-delta`);
+    if (!el) return;
+    const base = Number(previous || 0);
+    const cur = Number(current || 0);
+    const pct = base === 0 ? (cur === 0 ? 0 : 100) : ((cur - base) / Math.abs(base)) * 100;
+    const trend = cur - base;
+    const arrow = trend > 0 ? '▲' : (trend < 0 ? '▼' : '•');
+    el.textContent = `vs periodo anterior: ${arrow} ${formatPercent(pct)}`;
+  }
+
   function buildOptions(selectEl, items, { includeAll = true, allLabel = '(Todos)', allValue = 'all' } = {}) {
     if (!selectEl) return;
     const opts = [];
@@ -236,11 +277,18 @@ window.SGF.modules = window.SGF.modules || {};
       // si cambia moneda, recargar cuentas y mantener "todas"
       // (solo cuando se invoca desde cambio moneda)
       const k = computeKpis({ year, month, currency, accountId });
+      const prev = previousPeriod(year, month);
+      const kPrev = computeKpis({ year: prev.year, month: prev.month, currency, accountId });
 
       setKpi('in', k.income, currency);
       setKpi('out', k.expense, currency);
       setKpi('sav', k.savings, currency);
       setKpi('net', k.net, currency);
+
+      setDelta('in', k.income, kPrev.income);
+      setDelta('out', k.expense, kPrev.expense);
+      setDelta('sav', k.savings, kPrev.savings);
+      setDelta('net', k.net, kPrev.net);
 
       const netSub = document.getElementById('dash-net-sub');
       if (netSub) {
