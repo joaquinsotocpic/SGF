@@ -933,9 +933,11 @@ return {
           <td class="p-3 text-sm">${isoToCR(r.date)}</td>
           <td class="p-3 text-sm" title="${r.period}">${periodEs(r.period)}${closedBadge}</td>
           <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold ${badge}">${typeUi}</span></td>
+
           <td class="p-3 text-sm">${escapeHtmlSafe(r.account_name || '-')}</td>
           <td class="p-3 text-sm">${escapeHtmlSafe(r.account_to_name || '-')}</td>
           <td class="p-3 text-sm">${escapeHtmlSafe(catLabel)}</td>
+
           <td class="p-3 text-sm">${escapeHtmlSafe(r.description || '')}</td>
           <td class="p-3 text-sm font-semibold">${amtTxt}</td>
         </tr>
