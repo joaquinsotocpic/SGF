@@ -5,6 +5,19 @@
 window.SGF = window.SGF || {};
 window.SGF.modules = window.SGF.modules || {};
 
+
+function escHtml(value) {
+  const fn = window.SGF?.format?.escapeHtml;
+  if (typeof fn === 'function') return fn(value);
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+
 (function () {
   const PERIOD_RANGE_MONTHS = 24;
 
@@ -80,7 +93,7 @@ window.SGF.modules = window.SGF.modules || {};
     const opts = [];
     if (includeAll) opts.push(`<option value="">(Todas)</option>`);
     acc.forEach(a => {
-      opts.push(`<option value="${a.id}">${a.type_name ? (a.type_name + ' > ' + a.name) : a.name} (${a.currency})</option>`);
+      opts.push(`<option value="${a.id}">${escHtml(a.type_name ? (a.type_name + ' > ' + a.name) : a.name)} (${escHtml(a.currency)})</option>`);
     });
     selectEl.innerHTML = opts.join('');
   }
@@ -262,7 +275,7 @@ window.SGF.modules = window.SGF.modules || {};
             </div>
           </td>
           <td class="p-3 text-xs text-gray-400">#${r.id}</td>
-          <td class="p-3 text-sm">${r.account_name}</td>
+          <td class="p-3 text-sm">${escHtml(r.account_name)}</td>
           <td class="p-3 text-sm">${periodToLabel(r.period)} <span class="text-xs text-gray-400">(${r.period})</span></td>
           <td class="p-3 text-sm font-semibold">${formatMoney(r.bank_ending, cur)}</td>
           <td class="p-3 text-sm font-semibold">${formatMoney(sgf, cur)}</td>
@@ -363,7 +376,7 @@ window.SGF.modules = window.SGF.modules || {};
           <tr class="border-b ${isOk ? 'bg-green-50/40' : ''}">
             <td class="p-3"><input class="recon-ok" type="checkbox" data-movid="${m.id}" ${isOk ? 'checked' : ''} ${Number(currentRecon.closed||0)?'disabled':''} /></td>
             <td class="p-3">${dateCR}</td>
-            <td class="p-3">${desc.replaceAll('<','&lt;').replaceAll('>','&gt;')}</td>
+            <td class="p-3">${escHtml(desc)}</td>
             <td class="p-3 text-right font-semibold ${signed<0?'text-red-700':'text-green-700'}">${formatMoney(signed, cur)}</td>
           </tr>
         `;

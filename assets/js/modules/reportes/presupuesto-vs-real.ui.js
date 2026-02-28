@@ -31,7 +31,7 @@ window.SGF.modules = window.SGF.modules || {};
 
   function fillSelect(el, items, value){
     if (!el) return;
-    el.innerHTML = (items||[]).map(i => `<option value="${String(i.value)}">${String(i.label)}</option>`).join('');
+    el.innerHTML = (items||[]).map(i => `<option value="${esc(String(i.value))}">${esc(String(i.label))}</option>`).join('');
     if (E?.setSelectValueIfExists) E.setSelectValueIfExists(el, value);
     else el.value = value;
   }

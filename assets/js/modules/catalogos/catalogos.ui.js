@@ -1,5 +1,16 @@
 window.SGF = window.SGF || {}; window.SGF.modules = window.SGF.modules || {};
 
+function escapeHtmlSafe(value) {
+  const fn = window.SGF?.format?.escapeHtml;
+  if (typeof fn === 'function') return fn(value);
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
 function buildTree(rows) {
   const byId = new Map();
   rows.forEach(r => byId.set(r.id, { ...r, label: r.name, children: [] }));
@@ -112,7 +123,7 @@ function renderTree(containerId, kind) {
         <button type="button" onclick="toggleCollapse(this)" class="p-1 hover:text-blue-600 ${hasChildren ? '' : 'invisible'}">
           <i data-lucide="chevron-down" class="w-4 h-4"></i>
         </button>
-        <span class="flex-1 text-sm font-medium" data-tree-label>${node.name}</span>
+        <span class="flex-1 text-sm font-medium" data-tree-label>${escapeHtmlSafe(node.name)}</span>
         <span class="mr-2">${usageBadge(usage.get(Number(node.id)) || 0)}</span>
         <div class="flex space-x-1">
           <button type="button" class="text-green-600 p-1 hover:bg-green-50 rounded" title="Agregar hijo"
@@ -158,7 +169,7 @@ function renderTiposCuenta() {
           ${(() => { const u = usage.get(Number(r.id)) || 0; const dis = (Number(r.is_base)||0)===1 || u>0; const ttl = (Number(r.is_base)||0)===1 ? "Tipo base" : (u>0 ? "En uso" : "Eliminar"); return `<button type="button" class="text-red-600 hover:bg-red-50 p-1 rounded ${dis ? "opacity-40 cursor-not-allowed" : ""}" title="${ttl}" data-action="type-delete" data-id="${r.id}" ${dis ? "disabled" : ""}><i data-lucide="trash" class="w-4 h-4"></i></button>`; })()}
         </div>
       </td>
-      <td class="p-3 text-sm font-medium">${r.name}</td>
+      <td class="p-3 text-sm font-medium">${escapeHtmlSafe(r.name)}</td>
       <td class="p-3">${r.is_base ? '<span class="px-2 py-0.5 rounded bg-gray-200 text-gray-800 text-xs font-bold">Base</span>' : '-'}</td>
       <td class="p-3">${usageBadge(usage.get(Number(r.id)) || 0)}</td>
     </tr>
@@ -240,7 +251,7 @@ async function fillAccountTypeOptions(selectId, selectedId = null) {
   const sel = document.getElementById(selectId);
   if (!sel) return;
   const types = window.SGF.db.select('SELECT id, name FROM account_types WHERE active=1 ORDER BY name');
-  sel.innerHTML = types.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+  sel.innerHTML = types.map(t => `<option value="${t.id}">${escapeHtmlSafe(t.name)}</option>`).join('');
   if (selectedId) sel.value = String(selectedId);
 }
 
@@ -249,7 +260,7 @@ async function fillAccountParentOptions(selectId, selectedId = null, excludeId =
   if (!sel) return;
   let rows = window.SGF.db.select('SELECT id, name FROM accounts ORDER BY name');
   if (excludeId) rows = rows.filter(r => r.id !== excludeId);
-  sel.innerHTML = `<option value="">(Raíz)</option>` + rows.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+  sel.innerHTML = `<option value="">(Raíz)</option>` + rows.map(a => `<option value="${a.id}">${escapeHtmlSafe(a.name)}</option>`).join('');
   sel.value = selectedId ? String(selectedId) : '';
 }
 
@@ -258,7 +269,7 @@ async function fillCategoryParentOptions(selectId, selectedId = null, excludeId 
   if (!sel) return;
   let rows = window.SGF.db.select('SELECT id, name FROM categories ORDER BY name');
   if (excludeId) rows = rows.filter(r => r.id !== excludeId);
-  sel.innerHTML = `<option value="">(Raíz)</option>` + rows.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  sel.innerHTML = `<option value="">(Raíz)</option>` + rows.map(c => `<option value="${c.id}">${escapeHtmlSafe(c.name)}</option>`).join('');
   sel.value = selectedId ? String(selectedId) : '';
 }
 
@@ -690,5 +701,4 @@ window.SGF.modules.tipos = {
   function dbSelectMovementById(id) {
     return window.SGF.db.select('SELECT * FROM movements WHERE id=:id LIMIT 1', { ':id': Number(id) })[0] || null;
   }
-
 

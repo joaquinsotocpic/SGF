@@ -220,16 +220,87 @@
     }
   }
 
-  // --- Crypto (AES-CBC + PBKDF2) ---
+  const ENC_VER_GCM = 2;
+  const KDF_ITERATIONS_GCM = 210000;
+  const KDF_ITERATIONS_LEGACY = 100000;
+  let activeCrypto = null; // secreto de sesión en cierre (no exponer en window)
+
+  function u8ToB64(u8) {
+    let s = '';
+    for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]);
+    return btoa(s);
+  }
+
+  function b64ToU8(b64) {
+    const bin = atob(String(b64 || ''));
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+
+  function hasWebCrypto() {
+    return !!(window.crypto && window.crypto.subtle && typeof window.crypto.getRandomValues === 'function');
+  }
+
+  async function deriveAesGcmKey(password, saltU8, iterations = KDF_ITERATIONS_GCM) {
+    if (!hasWebCrypto()) throw new Error('WebCrypto no está disponible en este navegador.');
+    const enc = new TextEncoder();
+    const baseKey = await window.crypto.subtle.importKey(
+      'raw',
+      enc.encode(String(password || '')),
+      { name: 'PBKDF2' },
+      false,
+      ['deriveKey']
+    );
+    return await window.crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt: saltU8, iterations: Number(iterations || KDF_ITERATIONS_GCM), hash: 'SHA-256' },
+      baseKey,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  }
+
+  async function encryptBytesGcm(bytesU8, password) {
+    const salt = window.crypto.getRandomValues(new Uint8Array(16));
+    const iv = window.crypto.getRandomValues(new Uint8Array(12));
+    const key = await deriveAesGcmKey(password, salt, KDF_ITERATIONS_GCM);
+    const cipherBuf = await window.crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, bytesU8);
+    return {
+      encVersion: ENC_VER_GCM,
+      cipherAlg: 'AES-GCM',
+      kdf: 'PBKDF2-SHA256',
+      iterations: KDF_ITERATIONS_GCM,
+      saltB64: u8ToB64(salt),
+      ivB64: u8ToB64(iv),
+      cipherB64: u8ToB64(new Uint8Array(cipherBuf)),
+      _session: { key },
+    };
+  }
+
+  async function decryptBytesGcm(record, password) {
+    const salt = b64ToU8(record.saltB64);
+    const iv = b64ToU8(record.ivB64);
+    const cipher = b64ToU8(record.cipherB64);
+    const key = await deriveAesGcmKey(password, salt, Number(record.iterations || KDF_ITERATIONS_GCM));
+    try {
+      const plainBuf = await window.crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, cipher);
+      return { bytes: new Uint8Array(plainBuf), session: { key } };
+    } catch (_) {
+      throw new Error('No se pudo descifrar: contraseña incorrecta o bóveda corrupta.');
+    }
+  }
+
+  // --- Crypto LEGACY (AES-CBC + PBKDF2) ---
   function deriveKey(password, saltWA) {
     return CryptoJS.PBKDF2(password, saltWA, {
       keySize: 256 / 32,
-      iterations: 100000,
+      iterations: KDF_ITERATIONS_LEGACY,
       hasher: CryptoJS.algo.SHA256,
     });
   }
 
-  function encryptBytes(bytesU8, password) {
+  function encryptBytesLegacy(bytesU8, password) {
     const salt = CryptoJS.lib.WordArray.random(16);
     const iv = CryptoJS.lib.WordArray.random(16);
     const key = deriveKey(password, salt);
@@ -247,7 +318,7 @@
     };
   }
 
-  function decryptBytes({ saltB64, ivB64, cipherB64 }, password) {
+  function decryptBytesLegacy({ saltB64, ivB64, cipherB64 }, password) {
     const salt = b64ToWordArray(saltB64);
     const iv = b64ToWordArray(ivB64);
     const key = deriveKey(password, salt);
@@ -262,6 +333,58 @@
       throw new Error('No se pudo descifrar: contraseña incorrecta o bóveda corrupta.');
     }
     return wordArrayToU8(decryptedWA);
+  }
+
+  function isGcmRecord(record) {
+    return Number(record?.encVersion || 0) >= ENC_VER_GCM || String(record?.cipherAlg || '').toUpperCase() === 'AES-GCM';
+  }
+
+  function toCryptoFields(rec = {}) {
+    const out = {
+      saltB64: rec.saltB64,
+      ivB64: rec.ivB64,
+      cipherB64: rec.cipherB64,
+    };
+    if (rec.encVersion != null) out.encVersion = Number(rec.encVersion);
+    if (rec.cipherAlg) out.cipherAlg = String(rec.cipherAlg);
+    if (rec.kdf) out.kdf = String(rec.kdf);
+    if (rec.iterations != null) out.iterations = Number(rec.iterations);
+    return out;
+  }
+
+  async function decryptRecordWithPassword(record, password) {
+    if (isGcmRecord(record)) {
+      return await decryptBytesGcm(record, password);
+    }
+    return {
+      bytes: decryptBytesLegacy(record, password),
+      session: null,
+    };
+  }
+
+  async function decryptRecordWithActiveCrypto(record) {
+    if (!activeCrypto || !activeCrypto.key || !isGcmRecord(record)) {
+      throw new Error('No hay secreto activo para descifrar esta bóveda.');
+    }
+    const iv = b64ToU8(record.ivB64);
+    const cipher = b64ToU8(record.cipherB64);
+    const plainBuf = await window.crypto.subtle.decrypt({ name: 'AES-GCM', iv }, activeCrypto.key, cipher);
+    return new Uint8Array(plainBuf);
+  }
+
+  async function encryptWithActiveCrypto(bytesU8, existingRecord = {}) {
+    if (!activeCrypto?.key) throw new Error('No hay secreto activo para cifrar.');
+    const iv = window.crypto.getRandomValues(new Uint8Array(12));
+    const cipherBuf = await window.crypto.subtle.encrypt({ name: 'AES-GCM', iv }, activeCrypto.key, bytesU8);
+    return {
+      encVersion: ENC_VER_GCM,
+      cipherAlg: 'AES-GCM',
+      kdf: String(existingRecord.kdf || 'PBKDF2-SHA256'),
+      iterations: Number(existingRecord.iterations || KDF_ITERATIONS_GCM),
+      saltB64: String(existingRecord.saltB64 || ''),
+      ivB64: u8ToB64(iv),
+      cipherB64: u8ToB64(new Uint8Array(cipherBuf)),
+    };
   }
 
 
@@ -499,7 +622,9 @@
 
       const bytes = db.export();
       if (!isSqliteBytes(bytes)) throw new Error('No se pudo guardar: base en memoria corrupta.');
-      const enc = encryptBytes(bytes, password);
+      const encRes = await encryptBytesGcm(bytes, password);
+      const enc = toCryptoFields(encRes);
+      activeCrypto = encRes._session || null;
       const record = {
         username,
         createdAt: nowIso(),
@@ -511,7 +636,7 @@
 
       // Abrir sesión
       window.SGF.session = { username };
-      window.SGF.session.password = password;
+      activeCrypto = encRes._session || null;
       window.SGF.sqlDb = db;
       return true;
     },
@@ -524,7 +649,8 @@
       const record = await idbGetVault(username);
       if (!record) throw new Error('Usuario no existe en este dispositivo.');
 
-      const bytes = decryptBytes(record, password);
+      const dec = await decryptRecordWithPassword(record, password);
+      const bytes = dec.bytes;
       if (!isSqliteBytes(bytes)) {
         throw new Error('No se pudo abrir: contraseña incorrecta o bóveda corrupta.');
       }
@@ -538,23 +664,35 @@
       try { db.exec('PRAGMA foreign_keys = ON;'); } catch (_) {}
 
       window.SGF.session = { username };
-      window.SGF.session.password = password;
+      activeCrypto = dec.session || null;
       window.SGF.sqlDb = db;
+
+      // Migración silenciosa: bóvedas legacy (CBC) pasan a AES-GCM al abrir.
+      if (!activeCrypto) {
+        const migrated = await encryptBytesGcm(bytes, password);
+        const updated = {
+          ...record,
+          updatedAt: nowIso(),
+          ...toCryptoFields(migrated),
+        };
+        await idbPutVault(updated);
+        activeCrypto = migrated._session || null;
+      }
       return true;
     },
 
     async saveCurrent({ reason = 'manual' } = {}) {
       const username = window.SGF?.session?.username;
-      const password = window.SGF?.session?.password;
       const db = window.SGF?.sqlDb;
-      if (!username || !password || !db) throw new Error('No hay sesión activa para guardar.');
+      if (!username || !db) throw new Error('No hay sesión activa para guardar.');
+      if (!activeCrypto || !activeCrypto.key) throw new Error('No hay secreto activo para guardar. Reabre la bóveda.');
 
       const existing = await idbGetVault(username);
       if (!existing) throw new Error('No existe bóveda para este usuario.');
 
       const bytes = db.export();
       if (!isSqliteBytes(bytes)) throw new Error('No se pudo guardar: base en memoria corrupta.');
-      const enc = encryptBytes(bytes, password);
+      const enc = await encryptWithActiveCrypto(bytes, existing);
       const record = {
         ...existing,
         updatedAt: nowIso(),
@@ -572,9 +710,7 @@
             label: 'auto',
             createdAt: nowIso(),
             schemaVersion: record.schemaVersion,
-            saltB64: record.saltB64,
-            ivB64: record.ivB64,
-            cipherB64: record.cipherB64,
+            ...toCryptoFields(record),
           };
           await idbPutBackup(b);
           await pruneAutoBackups(username);
@@ -597,9 +733,7 @@
         schemaVersion: record.schemaVersion,
         createdAt: record.createdAt,
         updatedAt: record.updatedAt,
-        saltB64: record.saltB64,
-        ivB64: record.ivB64,
-        cipherB64: record.cipherB64,
+        ...toCryptoFields(record),
       };
     },
 
@@ -634,9 +768,7 @@
         schemaVersion: Number(payload.schemaVersion || 1),
         createdAt: String(payload.createdAt || now),
         updatedAt: String(payload.updatedAt || now),
-        saltB64: String(payload.saltB64),
-        ivB64: String(payload.ivB64),
-        cipherB64: String(payload.cipherB64),
+        ...toCryptoFields(payload),
       };
       await idbPutVault(record);
       return true;
@@ -662,6 +794,7 @@
       if (String(window.SGF?.session?.username || '') === username) {
         delete window.SGF.session;
         delete window.SGF.sqlDb;
+        activeCrypto = null;
       }
       return true;
     },
@@ -670,6 +803,7 @@
       await idbClearAll();
       delete window.SGF.session;
       delete window.SGF.sqlDb;
+      activeCrypto = null;
       return true;
     },
 
@@ -687,9 +821,7 @@
         schemaVersion: b.schemaVersion || 1,
         createdAt: b.createdAt,
         updatedAt: b.createdAt,
-        saltB64: b.saltB64,
-        ivB64: b.ivB64,
-        cipherB64: b.cipherB64,
+        ...toCryptoFields(b),
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -723,28 +855,24 @@
           schemaVersion: Number(b.schemaVersion || 1),
           createdAt: b.createdAt || nowIso(),
           updatedAt: nowIso(),
-          saltB64: b.saltB64,
-          ivB64: b.ivB64,
-          cipherB64: b.cipherB64,
+          ...toCryptoFields(b),
         };
         await idbPutVault(record);
       } else {
         const record = {
           ...existing,
           updatedAt: nowIso(),
-          saltB64: b.saltB64,
-          ivB64: b.ivB64,
-          cipherB64: b.cipherB64,
+          ...toCryptoFields(b),
         };
         await idbPutVault(record);
       }
 
       // Si es el usuario activo, recargar DB en memoria
       const active = String(window.SGF?.session?.username || '');
-      if (active && active === String(b.username) && window.SGF?.session?.password) {
+      if (active && active === String(b.username) && activeCrypto?.key) {
         try {
           const vaultRec = await idbGetVault(active);
-          const bytes = decryptBytes(vaultRec, window.SGF.session.password);
+          const bytes = await decryptRecordWithActiveCrypto(vaultRec);
           const tmp = new vault.SQL.Database(bytes);
           try { tmp.exec('PRAGMA foreign_keys = ON;'); } catch (_) {}
           window.SGF.sqlDb = tmp;

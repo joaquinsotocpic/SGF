@@ -59,6 +59,17 @@ window.SGF.modules = window.SGF.modules || {};
     return typeof fn === 'function' ? fn() : isoToCR(todayISO());
   }
 
+  function escapeHtmlSafe(value) {
+    const fn = window.SGF?.format?.escapeHtml;
+    if (typeof fn === 'function') return fn(value);
+    return String(value ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+  }
+
   // Date picker para CR (dd/mm/aaaa) usando flatpickr si está disponible.
   // Mantiene el input como texto para permitir escritura manual.
   function initCRDatePicker(inputEl) {
@@ -922,10 +933,10 @@ return {
           <td class="p-3 text-sm">${isoToCR(r.date)}</td>
           <td class="p-3 text-sm" title="${r.period}">${periodEs(r.period)}${closedBadge}</td>
           <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold ${badge}">${typeUi}</span></td>
-          <td class="p-3 text-sm">${r.account_name || '-'}</td>
-          <td class="p-3 text-sm">${r.account_to_name || '-'}</td>
-          <td class="p-3 text-sm">${catLabel}</td>
-          <td class="p-3 text-sm">${(r.description || '').replace(/</g,'&lt;')}</td>
+          <td class="p-3 text-sm">${escapeHtmlSafe(r.account_name || '-')}</td>
+          <td class="p-3 text-sm">${escapeHtmlSafe(r.account_to_name || '-')}</td>
+          <td class="p-3 text-sm">${escapeHtmlSafe(catLabel)}</td>
+          <td class="p-3 text-sm">${escapeHtmlSafe(r.description || '')}</td>
           <td class="p-3 text-sm font-semibold">${amtTxt}</td>
         </tr>
       `;
@@ -955,7 +966,7 @@ return {
       const yNow = new Date().getFullYear();
       const years = [];
       for (let y = yNow; y >= yNow - 5; y--) years.push({ id: String(y), name: String(y) });
-      yearSel.innerHTML = [`<option value="">(Todos)</option>`, ...years.map(y => `<option value="${y.id}">${y.name}</option>`)].join('');
+      yearSel.innerHTML = [`<option value="">(Todos)</option>`, ...years.map(y => `<option value="${y.id}">${escapeHtmlSafe(y.name)}</option>`)].join('');
       yearSel.dataset.wired = '1';
     }
     if (monthSel && !monthSel.dataset.wired) {
@@ -1269,7 +1280,7 @@ return {
     function fillSplitRow(tr) {
       const sel = tr.querySelector('.mov-split-cat');
       if (!sel) return;
-      sel.innerHTML = catPathList.map(c => `<option value="${c.id}">${c.path}</option>`).join('');
+      sel.innerHTML = catPathList.map(c => `<option value="${c.id}">${escapeHtmlSafe(c.path)}</option>`).join('');
     }
 
     function addRowIfNeeded() {
@@ -1327,14 +1338,14 @@ return {
           recomputeAmountFromSplit();
         } else {
           // categoría simple
-          catSel.innerHTML = `<option value="">(Opcional)</option>` + catPathList.map(c => `<option value="${c.id}">${c.path}</option>`).join('');
+          catSel.innerHTML = `<option value="">(Opcional)</option>` + catPathList.map(c => `<option value="${c.id}">${escapeHtmlSafe(c.path)}</option>`).join('');
           catSel.value = m.category_id ? String(m.category_id) : '';
           setAmountReadonly(false);
         }
       }
     } else {
       // defaults
-      catSel.innerHTML = `<option value="">(Opcional)</option>` + catPathList.map(c => `<option value="${c.id}">${c.path}</option>`).join('');
+      catSel.innerHTML = `<option value="">(Opcional)</option>` + catPathList.map(c => `<option value="${c.id}">${escapeHtmlSafe(c.path)}</option>`).join('');
     }
 
     // Date picker (dd/mm/aaaa) para Nuevo/Editar
@@ -1480,7 +1491,7 @@ return {
             });
             rows.appendChild(tr);
             const sel = tr.querySelector('.mov-split-cat');
-            if (sel) sel.innerHTML = cats.map(c => `<option value="${c.id}">${c.path}</option>`).join('');
+            if (sel) sel.innerHTML = cats.map(c => `<option value="${c.id}">${escapeHtmlSafe(c.path)}</option>`).join('');
 
             // UX: si el usuario ya digitó un monto, precargarlo en la primera fila
             const amtEl = tr.querySelector('.mov-split-amt');
@@ -1493,7 +1504,7 @@ return {
           rows.querySelectorAll('tr').forEach(tr => {
             const sel = tr.querySelector('.mov-split-cat');
             if (sel && !sel.children.length) {
-              sel.innerHTML = cats.map(c => `<option value="${c.id}">${c.path}</option>`).join('');
+              sel.innerHTML = cats.map(c => `<option value="${c.id}">${escapeHtmlSafe(c.path)}</option>`).join('');
             }
           });
 
@@ -1529,7 +1540,7 @@ return {
         });
         rows.appendChild(tr);
         const sel = tr.querySelector('.mov-split-cat');
-        if (sel) sel.innerHTML = cats.map(c => `<option value="${c.id}">${c.path}</option>`).join('');
+        if (sel) sel.innerHTML = cats.map(c => `<option value="${c.id}">${escapeHtmlSafe(c.path)}</option>`).join('');
         window.lucide?.createIcons?.();
         recomputeAmountFromSplit();
         return;
@@ -1616,9 +1627,9 @@ return {
               </button>
             </div>
           </td>
-          <td class="p-2 font-medium">${String(r.name || '').replace(/</g,'&lt;')}</td>
+          <td class="p-2 font-medium">${escapeHtmlSafe(r.name || '')}</td>
           <td class="p-2"><span class="px-2 py-0.5 rounded text-xs font-bold ${badge}">${typeUi}</span></td>
-          <td class="p-2">${String(acc).replace(/</g,'&lt;')}${String(accTo).replace(/</g,'&lt;')}</td>
+          <td class="p-2">${escapeHtmlSafe(acc)}${escapeHtmlSafe(accTo)}</td>
           <td class="p-2">${Number(r.day || 1)}</td>
           <td class="p-2 font-semibold">${formatMoney(Number(r.amount || 0), cur)}</td>
           <td class="p-2">${Number(r.active || 0) ? 'Sí' : 'No'}</td>

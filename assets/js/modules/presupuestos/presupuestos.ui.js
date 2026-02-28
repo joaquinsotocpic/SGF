@@ -27,6 +27,17 @@ window.SGF.modalHandlers = window.SGF.modalHandlers || {};
     return `${num} ${cur || ''}`.trim();
   }
 
+  function escHtml(value) {
+    const fn = window.SGF?.format?.escapeHtml;
+    if (typeof fn === 'function') return fn(value);
+    return String(value ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('\"', '&quot;')
+      .replaceAll("'", '&#39;');
+  }
+
   function periodEs(period) {
     const fn = window.SGF?.format?.periodEs;
     if (typeof fn === 'function') return fn(period);
@@ -256,9 +267,9 @@ window.SGF.modalHandlers = window.SGF.modalHandlers || {};
             </div>
           </td>
           <td class="p-3 text-xs text-gray-400">#${r.id}</td>
-          <td class="p-3 text-sm" title="${periodTitle}">${periodLabel}</td>
+          <td class="p-3 text-sm" title="${escHtml(periodTitle)}">${escHtml(periodLabel)}</td>
           <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold ${typeBadge}">${typeUi}</span></td>
-          <td class="p-3 text-sm">${r.catLabel}</td>
+          <td class="p-3 text-sm">${escHtml(r.catLabel)}</td>
           <td class="p-3 text-sm font-semibold">${fmtMoney(r.amount, r.currency)}</td>
           <td class="p-3 text-sm">${fmtMoney(r.used, r.currency)}</td>
           <td class="p-3">
@@ -347,7 +358,7 @@ window.SGF.modalHandlers = window.SGF.modalHandlers || {};
     const selF = document.getElementById('bud-cat-f');
     if (selF) {
       const cur = selF.value;
-      selF.innerHTML = `<option value="">(Todas)</option>` + cats.map(c => `<option value="${c.id}">${c.path}</option>`).join('');
+      selF.innerHTML = `<option value="">(Todas)</option>` + cats.map(c => `<option value="${c.id}">${escHtml(c.path)}</option>`).join('');
       if (cur) selF.value = cur;
     }
   }
@@ -423,7 +434,7 @@ window.SGF.modalHandlers = window.SGF.modalHandlers || {};
     const periodSel = document.getElementById('bud-period');
     fillPeriodSelect(periodSel, '', { includeAll: false });
     const catSel = document.getElementById('bud-cat');
-    if (catSel) catSel.innerHTML = cats.map(c => `<option value="${c.id}">${c.path}</option>`).join('');
+    if (catSel) catSel.innerHTML = cats.map(c => `<option value="${c.id}">${escHtml(c.path)}</option>`).join('');
 
     const ctx = window.SGF.modalContext || {};
     const id = Number(ctx.id || 0);
