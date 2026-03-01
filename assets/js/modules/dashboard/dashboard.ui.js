@@ -225,6 +225,54 @@ window.SGF.modules = window.SGF.modules || {};
     return { income, expense, savings, net, rangeLabel: range.label, endPeriod };
   }
 
+
+
+  function computeHighlights({ year, month, currency, accountId }) {
+    const range = getRangeFilter({ year, month });
+    const w = [];
+    const p = {};
+    if (range.whereSql) { w.push(range.whereSql); Object.assign(p, range.params); }
+    w.push(`currency = :cur`);
+    w.push(`type = 'expense'`);
+    p[':cur'] = currency;
+    if (Number(accountId) > 0) {
+      w.push(`(m.account_id = :aid OR m.account_to_id = :aid)`);
+      p[':aid'] = Number(accountId);
+    }
+    const where = `WHERE ${w.join(' AND ')}`;
+
+    const cat = dbAll(
+      `SELECT COALESCE(c.name,'Sin categoría') AS label, COALESCE(SUM(m.amount),0) AS total
+       FROM movements m
+       LEFT JOIN categories c ON c.id = m.category_id
+       ${where}
+       GROUP BY COALESCE(c.name,'Sin categoría')
+       ORDER BY total DESC
+       LIMIT 1`,
+      p
+    )[0] || { label: 'Sin datos', total: 0 };
+
+    const acc = dbAll(
+      `SELECT COALESCE(a.name,'Sin cuenta') AS label, COALESCE(SUM(m.amount),0) AS total
+       FROM movements m
+       LEFT JOIN accounts a ON a.id = m.account_id
+       ${where}
+       GROUP BY COALESCE(a.name,'Sin cuenta')
+       ORDER BY total DESC
+       LIMIT 1`,
+      p
+    )[0] || { label: 'Sin datos', total: 0 };
+
+    return { category: cat, account: acc };
+  }
+
+  function setHighlight(idName, idAmount, row, currency) {
+    const nameEl = document.getElementById(idName);
+    const amountEl = document.getElementById(idAmount);
+    if (nameEl) nameEl.textContent = row?.label || 'Sin datos';
+    if (amountEl) amountEl.textContent = formatMoney(row?.total || 0, currency);
+  }
+
   function normalizeMonthYear(yearEl, monthEl) {
     if (!yearEl || !monthEl) return;
     if (monthEl.value !== 'all' && yearEl.value === 'all') {
@@ -289,6 +337,10 @@ window.SGF.modules = window.SGF.modules || {};
       setDelta('out', k.expense, kPrev.expense);
       setDelta('sav', k.savings, kPrev.savings);
       setDelta('net', k.net, kPrev.net);
+
+      const hi = computeHighlights({ year, month, currency, accountId });
+      setHighlight('dash-top-cat-name', 'dash-top-cat-amount', hi.category, currency);
+      setHighlight('dash-top-acc-name', 'dash-top-acc-amount', hi.account, currency);
 
       const netSub = document.getElementById('dash-net-sub');
       if (netSub) {
