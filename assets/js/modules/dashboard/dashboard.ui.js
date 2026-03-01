@@ -248,6 +248,9 @@ window.SGF.modules = window.SGF.modules || {};
     }
     w.push(`m.currency = :cur`);
     w.push(`m.type = 'expense'`);
+    if (range.whereSql) { w.push(range.whereSql); Object.assign(p, range.params); }
+    w.push(`currency = :cur`);
+    w.push(`type = 'expense'`);
     p[':cur'] = currency;
     if (Number(accountId) > 0) {
       w.push(`(m.account_id = :aid OR m.account_to_id = :aid)`);
