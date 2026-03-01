@@ -227,10 +227,27 @@ window.SGF.modules = window.SGF.modules || {};
 
 
 
+
+
+  function qualifyMovementWhere(sql) {
+    const txt = String(sql || '');
+    return txt
+      .replaceAll('period', 'm.period')
+      .replaceAll('currency', 'm.currency')
+      .replaceAll('account_id', 'm.account_id')
+      .replaceAll('account_to_id', 'm.account_to_id');
+  }
+
   function computeHighlights({ year, month, currency, accountId }) {
     const range = getRangeFilter({ year, month });
     const w = [];
     const p = {};
+    if (range.whereSql) {
+      w.push(qualifyMovementWhere(range.whereSql));
+      Object.assign(p, range.params);
+    }
+    w.push(`m.currency = :cur`);
+    w.push(`m.type = 'expense'`);
     if (range.whereSql) { w.push(range.whereSql); Object.assign(p, range.params); }
     w.push(`currency = :cur`);
     w.push(`type = 'expense'`);
