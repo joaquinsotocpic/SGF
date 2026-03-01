@@ -22,6 +22,47 @@ window.SGF.modules = window.SGF.modules || {};
     }
   }
 
+
+
+  function formatPercent(n) {
+    const v = Number(n || 0);
+    const sign = v > 0 ? '+' : '';
+    return `${sign}${v.toFixed(1)}%`;
+  }
+
+  function previousPeriod(year, month) {
+    const d = new Date();
+    if (year === 'all' && month === 'all') {
+      const m = d.getMonth() + 1;
+      const y = d.getFullYear();
+      return m === 1
+        ? { year: String(y - 1), month: '12' }
+        : { year: String(y), month: String(m - 1).padStart(2, '0') };
+    }
+    if (year !== 'all' && month !== 'all') {
+      const y = Number(year);
+      const m = Number(month);
+      return m === 1
+        ? { year: String(y - 1), month: '12' }
+        : { year: String(y), month: String(m - 1).padStart(2, '0') };
+    }
+    if (year !== 'all' && month === 'all') {
+      return { year: String(Number(year) - 1), month: 'all' };
+    }
+    return { year: 'all', month: 'all' };
+  }
+
+  function setDelta(name, current, previous) {
+    const el = document.getElementById(`dash-${name}-delta`);
+    if (!el) return;
+    const base = Number(previous || 0);
+    const cur = Number(current || 0);
+    const pct = base === 0 ? (cur === 0 ? 0 : 100) : ((cur - base) / Math.abs(base)) * 100;
+    const trend = cur - base;
+    const arrow = trend > 0 ? '▲' : (trend < 0 ? '▼' : '•');
+    el.textContent = `vs periodo anterior: ${arrow} ${formatPercent(pct)}`;
+  }
+
   function buildOptions(selectEl, items, { includeAll = true, allLabel = '(Todos)', allValue = 'all' } = {}) {
     if (!selectEl) return;
     const opts = [];
@@ -184,6 +225,54 @@ window.SGF.modules = window.SGF.modules || {};
     return { income, expense, savings, net, rangeLabel: range.label, endPeriod };
   }
 
+
+
+  function computeHighlights({ year, month, currency, accountId }) {
+    const range = getRangeFilter({ year, month });
+    const w = [];
+    const p = {};
+    if (range.whereSql) { w.push(range.whereSql); Object.assign(p, range.params); }
+    w.push(`currency = :cur`);
+    w.push(`type = 'expense'`);
+    p[':cur'] = currency;
+    if (Number(accountId) > 0) {
+      w.push(`(m.account_id = :aid OR m.account_to_id = :aid)`);
+      p[':aid'] = Number(accountId);
+    }
+    const where = `WHERE ${w.join(' AND ')}`;
+
+    const cat = dbAll(
+      `SELECT COALESCE(c.name,'Sin categoría') AS label, COALESCE(SUM(m.amount),0) AS total
+       FROM movements m
+       LEFT JOIN categories c ON c.id = m.category_id
+       ${where}
+       GROUP BY COALESCE(c.name,'Sin categoría')
+       ORDER BY total DESC
+       LIMIT 1`,
+      p
+    )[0] || { label: 'Sin datos', total: 0 };
+
+    const acc = dbAll(
+      `SELECT COALESCE(a.name,'Sin cuenta') AS label, COALESCE(SUM(m.amount),0) AS total
+       FROM movements m
+       LEFT JOIN accounts a ON a.id = m.account_id
+       ${where}
+       GROUP BY COALESCE(a.name,'Sin cuenta')
+       ORDER BY total DESC
+       LIMIT 1`,
+      p
+    )[0] || { label: 'Sin datos', total: 0 };
+
+    return { category: cat, account: acc };
+  }
+
+  function setHighlight(idName, idAmount, row, currency) {
+    const nameEl = document.getElementById(idName);
+    const amountEl = document.getElementById(idAmount);
+    if (nameEl) nameEl.textContent = row?.label || 'Sin datos';
+    if (amountEl) amountEl.textContent = formatMoney(row?.total || 0, currency);
+  }
+
   function normalizeMonthYear(yearEl, monthEl) {
     if (!yearEl || !monthEl) return;
     if (monthEl.value !== 'all' && yearEl.value === 'all') {
@@ -236,11 +325,22 @@ window.SGF.modules = window.SGF.modules || {};
       // si cambia moneda, recargar cuentas y mantener "todas"
       // (solo cuando se invoca desde cambio moneda)
       const k = computeKpis({ year, month, currency, accountId });
+      const prev = previousPeriod(year, month);
+      const kPrev = computeKpis({ year: prev.year, month: prev.month, currency, accountId });
 
       setKpi('in', k.income, currency);
       setKpi('out', k.expense, currency);
       setKpi('sav', k.savings, currency);
       setKpi('net', k.net, currency);
+
+      setDelta('in', k.income, kPrev.income);
+      setDelta('out', k.expense, kPrev.expense);
+      setDelta('sav', k.savings, kPrev.savings);
+      setDelta('net', k.net, kPrev.net);
+
+      const hi = computeHighlights({ year, month, currency, accountId });
+      setHighlight('dash-top-cat-name', 'dash-top-cat-amount', hi.category, currency);
+      setHighlight('dash-top-acc-name', 'dash-top-acc-amount', hi.account, currency);
 
       const netSub = document.getElementById('dash-net-sub');
       if (netSub) {
